@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content="0; url=/login" />
+    <title>Redirecting</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: Arial, sans-serif;
+        background: #f4f7fb;
+        color: #243042;
+      }
+
+      a {
+        color: #0f6cbd;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Redirecting to <a href="/login">login</a>...</p>
+    <script>
+      window.location.replace("/login");
+    </script>
+  </body>
+</html>
