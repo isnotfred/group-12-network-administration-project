@@ -1,205 +1,617 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dashboard</title>
-    <style>
-      * {
-        box-sizing: border-box;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Network Administration — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f4f7fb;
-        color: #1f2937;
-      }
+    :root {
+      --navy-950: #020817;
+      --navy-900: #0a1628;
+      --navy-800: #0f2040;
+      --navy-700: #163058;
+      --navy-600: #1e4080;
+      --navy-500: #2456a8;
+      --navy-400: #3b6ec4;
+      --navy-300: #6b9dd6;
+      --accent:      #4a9eff;
+      --accent-glow: rgba(74,158,255,0.35);
+      --white: #ffffff;
+      --surface: rgba(255,255,255,0.06);
+      --surface-border: rgba(255,255,255,0.12);
+      --text-primary:   #f0f6ff;
+      --text-secondary: rgba(200,220,248,0.75);
+      --text-muted:     rgba(150,185,230,0.5);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger:  #ef4444;
+      --font-head: 'Space Grotesk', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+    }
 
-      header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 18px 6vw;
-        background: #ffffff;
-        border-bottom: 1px solid #d8dee7;
-      }
+    body {
+      font-family: var(--font-body);
+      background: var(--navy-950);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-      .brand {
-        font-size: 20px;
-        font-weight: 800;
-      }
+    /* ── ANIMATIONS ─────────────────────────────────────────── */
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.6; transform: scale(0.8); }
+    }
+    @keyframes scanline {
+      0%   { top: 0%; }
+      100% { top: 100%; }
+    }
+    @keyframes detectPulse {
+      0%,100% { border-color: rgba(74,158,255,0.7); }
+      50%     { border-color: rgba(74,158,255,0.2); }
+    }
+    @keyframes rackBlink {
+      0%,100% { opacity: 1; }
+      50%     { opacity: 0.2; }
+    }
 
-      .logout {
-        color: #0f6cbd;
-        font-weight: 700;
-        text-decoration: none;
-      }
+    /* ── TOPBAR ─────────────────────────────────────────────── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 56px;
+      background: rgba(2,8,23,0.75);
+      border-bottom: 0.5px solid var(--surface-border);
+      backdrop-filter: blur(16px);
+    }
+    .topbar-brand {
+      font-family: var(--font-head);
+      font-size: 15px; font-weight: 600;
+      letter-spacing: 0.04em; color: var(--text-primary);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .topbar-brand .dot {
+      width: 8px; height: 8px;
+      background: var(--accent); border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-glow);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .topbar-logout {
+      font-family: var(--font-body);
+      font-size: 13px; font-weight: 500;
+      color: var(--navy-300); text-decoration: none;
+      padding: 6px 14px; border-radius: var(--radius-sm);
+      border: 0.5px solid rgba(107,157,214,0.3);
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+      cursor: pointer; background: transparent;
+    }
+    .topbar-logout:hover {
+      color: var(--text-primary);
+      border-color: var(--navy-300);
+      background: var(--surface);
+    }
 
-      main {
-        width: min(1120px, 88vw);
-        margin: 32px auto;
-      }
+    /* ── DASHBOARD LAYOUT ───────────────────────────────────── */
+    .dashboard-page {
+      min-height: 100vh;
+      background: linear-gradient(160deg, var(--navy-950) 0%, #060e1e 60%, var(--navy-900) 100%);
+      padding-top: 56px;
+    }
+    .dash-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 32px 64px;
+    }
 
-      .welcome {
-        margin-bottom: 24px;
-      }
+    /* ── WELCOME HERO ───────────────────────────────────────── */
+    .welcome-hero { margin-bottom: 40px; }
 
-      h1 {
-        margin: 0 0 8px;
-        font-size: 32px;
-        line-height: 1.2;
-      }
+    .welcome-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 12px;
+    }
+    .welcome-tag .tag-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px rgba(34,197,94,0.6);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .welcome-heading {
+      font-family: var(--font-head);
+      font-size: 38px; font-weight: 700;
+      letter-spacing: -0.03em; line-height: 1.1;
+      color: var(--text-primary); margin-bottom: 6px;
+    }
+    .welcome-heading span {
+      background: linear-gradient(90deg, var(--navy-300), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .welcome-sub { font-size: 14px; color: var(--text-muted); }
 
-      p {
-        margin: 0;
-        color: #5b6676;
-      }
+    /* ── CAMERA PREVIEW ─────────────────────────────────────── */
+    .camera-section { margin: 32px 0 48px; }
 
-      .stats {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-      }
+    .camera-label {
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .camera-label::after {
+      content: ''; flex: 1; height: 0.5px;
+      background: rgba(255,255,255,0.08);
+    }
 
-      .card,
-      .table-wrap {
-        border: 1px solid #d8dee7;
-        border-radius: 8px;
-        background: #ffffff;
-        box-shadow: 0 10px 30px rgba(31, 41, 55, 0.07);
-      }
+    .camera-frame {
+      width: 100%; max-width: 740px;
+      aspect-ratio: 16/7;
+      background: #000a1a;
+      border-radius: var(--radius-lg);
+      border: 0.5px solid rgba(74,158,255,0.2);
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 40px rgba(10,22,40,0.8), 0 0 0 0.5px rgba(74,158,255,0.08);
+    }
 
-      .card {
-        padding: 20px;
-      }
+    .cam-scanline {
+      position: absolute; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(74,158,255,0.6), transparent);
+      animation: scanline 4s linear infinite;
+      z-index: 3; opacity: 0.6;
+    }
+    .cam-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(74,158,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,158,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px; z-index: 1;
+    }
+    .cam-vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0,5,15,0.85) 100%);
+      z-index: 2;
+    }
 
-      .label {
-        margin-bottom: 10px;
-        color: #5b6676;
-        font-size: 14px;
-        font-weight: 700;
-        text-transform: uppercase;
-      }
+    /* Detection bounding boxes */
+    .cam-detect {
+      position: absolute;
+      border: 1px solid rgba(74,158,255,0.7);
+      border-radius: 4px; z-index: 4;
+      animation: detectPulse 3s ease-in-out infinite;
+    }
+    .cam-detect::before, .cam-detect::after {
+      content: ''; position: absolute;
+      width: 8px; height: 8px;
+      border-color: var(--accent); border-style: solid;
+    }
+    .cam-detect::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+    .cam-detect::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+    .cam-d1 { top: 18%; left: 12%; width: 120px; height: 80px; }
+    .cam-d2 { top: 30%; left: 55%; width: 90px;  height: 60px; animation-delay: 1.2s; }
+    .cam-d3 { bottom: 15%; left: 32%; width: 100px; height: 65px; animation-delay: 2.1s; }
 
-      .value {
-        font-size: 30px;
-        font-weight: 800;
-      }
+    .cam-detect-label {
+      position: absolute; top: -20px; left: 0;
+      font-family: var(--font-body); font-size: 10px; font-weight: 500;
+      letter-spacing: 0.06em; color: var(--accent); white-space: nowrap;
+    }
 
-      .table-wrap {
-        overflow-x: auto;
-      }
+    .cam-bg-elements { position: absolute; inset: 0; z-index: 1; }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 620px;
-      }
+    /* Animated server rack silhouette */
+    .cam-server-rack {
+      position: absolute;
+      right: 8%; top: 10%; bottom: 10%; width: 60px;
+      background: rgba(15,32,64,0.8);
+      border: 0.5px solid rgba(74,158,255,0.15);
+      border-radius: 4px;
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 10px 6px; overflow: hidden;
+    }
+    .rack-unit {
+      height: 10px; background: rgba(36,86,168,0.4);
+      border-radius: 2px; position: relative; overflow: hidden;
+    }
+    .rack-unit::after {
+      content: ''; position: absolute;
+      left: 4px; top: 3px; width: 4px; height: 4px;
+      border-radius: 50%; background: var(--success);
+      box-shadow: 0 0 4px rgba(34,197,94,0.8);
+      animation: rackBlink 1.5s ease-in-out infinite;
+    }
+    .rack-unit:nth-child(3)::after {
+      background: var(--warning);
+      box-shadow: 0 0 4px rgba(245,158,11,0.8);
+      animation-delay: 0.4s;
+    }
+    .rack-unit:nth-child(5)::after { animation-delay: 0.8s; }
 
-      th,
-      td {
-        padding: 16px;
-        border-bottom: 1px solid #e5eaf0;
-        text-align: left;
-      }
+    /* Camera status bar */
+    .cam-status-bar {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 36px; background: rgba(2,8,23,0.8);
+      backdrop-filter: blur(8px);
+      border-top: 0.5px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 20px; z-index: 5;
+    }
+    .cam-status-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text-muted); letter-spacing: 0.04em;
+    }
+    .cam-status-item .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 5px rgba(34,197,94,0.7);
+    }
+    .cam-status-item .dot.warn {
+      background: var(--warning);
+      box-shadow: 0 0 5px rgba(245,158,11,0.7);
+    }
+    .cam-timestamp {
+      margin-left: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 10px; color: var(--text-muted); letter-spacing: 0.08em;
+    }
 
-      th {
-        color: #5b6676;
-        font-size: 13px;
-        text-transform: uppercase;
-      }
+    /* Corner bracket decorations */
+    .cam-corner { position: absolute; z-index: 5; }
+    .cam-corner svg { display: block; }
+    .cam-corner-tl { top: 10px; left: 10px; }
+    .cam-corner-tr { top: 10px; right: 10px; transform: scaleX(-1); }
+    .cam-corner-bl { bottom: 44px; left: 10px; transform: scaleY(-1); }
+    .cam-corner-br { bottom: 44px; right: 10px; transform: scale(-1); }
 
-      tr:last-child td {
-        border-bottom: 0;
-      }
+    /* ── STAT CARDS ─────────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px; margin-bottom: 32px;
+    }
+    .stat-card {
+      background: rgba(10,22,40,0.6);
+      border: 0.5px solid rgba(255,255,255,0.09);
+      border-radius: var(--radius-lg);
+      padding: 24px 26px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s, background 0.2s;
+      backdrop-filter: blur(12px);
+    }
+    .stat-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--navy-400), transparent);
+      opacity: 0.5;
+    }
+    .stat-card:hover {
+      border-color: rgba(74,158,255,0.2);
+      background: rgba(15,32,64,0.5);
+    }
+    .stat-label {
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 12px;
+    }
+    .stat-value {
+      font-family: var(--font-head);
+      font-size: 36px; font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text-primary); line-height: 1; margin-bottom: 6px;
+    }
+    .stat-delta      { font-size: 12px; color: var(--success); }
+    .stat-delta.warn { color: var(--warning); }
+    .stat-accent {
+      position: absolute; bottom: -10px; right: -10px;
+      width: 80px; height: 80px; border-radius: 50%; opacity: 0.07;
+    }
+    .stat-accent.blue  { background: var(--accent); }
+    .stat-accent.warn  { background: var(--warning); }
+    .stat-accent.green { background: var(--success); }
 
-      .status {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 999px;
-        background: #e9f7ef;
-        color: #17633a;
-        font-size: 13px;
-        font-weight: 700;
-      }
+    /* ── SECTION LABEL ──────────────────────────────────────── */
+    .section-label {
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 0.5px;
+      background: rgba(255,255,255,0.08);
+    }
 
-      @media (max-width: 720px) {
-        header {
-          padding: 16px 5vw;
-        }
+    /* ── DEVICES TABLE ──────────────────────────────────────── */
+    .devices-table {
+      background: rgba(10,22,40,0.55);
+      border: 0.5px solid rgba(255,255,255,0.09);
+      border-radius: var(--radius-lg);
+      overflow: hidden; backdrop-filter: blur(12px);
+    }
+    .table-head {
+      display: grid;
+      grid-template-columns: 2fr 1.8fr 1.6fr 1fr;
+      padding: 14px 24px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.07);
+      background: rgba(15,32,64,0.3);
+    }
+    .table-head-cell {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .table-row {
+      display: grid;
+      grid-template-columns: 2fr 1.8fr 1.6fr 1fr;
+      padding: 18px 24px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.05);
+      align-items: center; transition: background 0.15s;
+    }
+    .table-row:last-child { border-bottom: none; }
+    .table-row:hover      { background: rgba(74,158,255,0.04); }
 
-        main {
-          width: 90vw;
-        }
+    .device-name {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px; font-weight: 500; color: var(--text-primary);
+    }
+    .device-icon {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      background: rgba(36,86,168,0.25);
+      border: 0.5px solid rgba(74,158,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .table-cell {
+      font-size: 13px; color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
 
-        .stats {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <div class="brand">Network Administration</div>
-      <a class="logout" href="/logout">Log out</a>
-    </header>
+    /* ── STATUS BADGES ──────────────────────────────────────── */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 500;
+      padding: 4px 12px; border-radius: 100px;
+    }
+    .status-badge.online {
+      background: rgba(34,197,94,0.12); color: #4ade80;
+      border: 0.5px solid rgba(34,197,94,0.25);
+    }
+    .status-badge.offline {
+      background: rgba(239,68,68,0.12); color: #f87171;
+      border: 0.5px solid rgba(239,68,68,0.25);
+    }
+    .status-badge.warn {
+      background: rgba(245,158,11,0.12); color: #fbbf24;
+      border: 0.5px solid rgba(245,158,11,0.25);
+    }
+    .badge-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: currentColor; box-shadow: 0 0 5px currentColor;
+    }
+  </style>
+</head>
+<body>
 
-    <main>
-      <section class="welcome">
-        <h1>Welcome, {{ user }}</h1>
-        <p>Railway-hosted Flask dashboard for quick network status checks.</p>
-      </section>
+  <div class="dashboard-page">
 
-      <section class="stats" aria-label="Network summary">
-        <article class="card">
-          <div class="label">Active Devices</div>
-          <div class="value">24</div>
-        </article>
-        <article class="card">
-          <div class="label">Open Alerts</div>
-          <div class="value">3</div>
-        </article>
-        <article class="card">
-          <div class="label">Uptime</div>
-          <div class="value">99.8%</div>
-        </article>
-      </section>
+    <!-- Topbar -->
+    <nav class="topbar">
+      <div class="topbar-brand">
+        <span class="dot"></span>
+        Network Administration
+      </div>
+      <button class="topbar-logout" onclick="window.location.href='login.html'">Log out</button>
+    </nav>
 
-      <section class="table-wrap" aria-label="Device table">
-        <table>
-          <thead>
-            <tr>
-              <th>Device</th>
-              <th>IP Address</th>
-              <th>Location</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Core Router</td>
-              <td>192.168.1.1</td>
-              <td>Server Room</td>
-              <td><span class="status">Online</span></td>
-            </tr>
-            <tr>
-              <td>Access Switch 1</td>
-              <td>192.168.1.10</td>
-              <td>Laboratory</td>
-              <td><span class="status">Online</span></td>
-            </tr>
-            <tr>
-              <td>Wireless AP</td>
-              <td>192.168.1.25</td>
-              <td>Hallway</td>
-              <td><span class="status">Online</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-    </main>
-  </body>
+    <!-- Main content -->
+    <div class="dash-inner">
+
+      <!-- Welcome Hero -->
+      <div class="welcome-hero">
+        <div class="welcome-tag">
+          <span class="tag-dot"></span>System Operational
+        </div>
+        <h2 class="welcome-heading">Welcome, <span>admin-12</span></h2>
+        <p class="welcome-sub">Last login: Today at 08:41 AM · Server Room Terminal</p>
+      </div>
+
+      <!-- Camera Preview -->
+      <div class="camera-section">
+        <div class="camera-label">Live Camera — Server Room</div>
+        <div class="camera-frame">
+
+          <div class="cam-grid"></div>
+
+          <div class="cam-bg-elements">
+            <div class="cam-server-rack">
+              <div class="rack-unit"></div><div class="rack-unit"></div>
+              <div class="rack-unit"></div><div class="rack-unit"></div>
+              <div class="rack-unit"></div><div class="rack-unit"></div>
+              <div class="rack-unit"></div>
+            </div>
+            <svg style="position:absolute;bottom:36px;left:0;right:0;width:100%;height:50%" viewBox="0 0 740 130" preserveAspectRatio="none">
+              <line x1="0"   y1="130" x2="370" y2="40" stroke="rgba(74,158,255,0.06)" stroke-width="1"/>
+              <line x1="740" y1="130" x2="370" y2="40" stroke="rgba(74,158,255,0.06)" stroke-width="1"/>
+              <line x1="0"   y1="130" x2="370" y2="60" stroke="rgba(74,158,255,0.04)" stroke-width="1"/>
+              <line x1="740" y1="130" x2="370" y2="60" stroke="rgba(74,158,255,0.04)" stroke-width="1"/>
+              <line x1="0"   y1="130" x2="370" y2="80" stroke="rgba(74,158,255,0.03)" stroke-width="1"/>
+              <line x1="740" y1="130" x2="370" y2="80" stroke="rgba(74,158,255,0.03)" stroke-width="1"/>
+            </svg>
+          </div>
+
+          <div class="cam-scanline"></div>
+          <div class="cam-vignette"></div>
+
+          <div class="cam-detect cam-d1"><div class="cam-detect-label">RACK-A · ID:001</div></div>
+          <div class="cam-detect cam-d2"><div class="cam-detect-label">RACK-B · ID:002</div></div>
+          <div class="cam-detect cam-d3"><div class="cam-detect-label">MOTION CLEAR</div></div>
+
+          <div class="cam-corner cam-corner-tl">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M0 10 L0 0 L10 0" stroke="rgba(74,158,255,0.7)" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <div class="cam-corner cam-corner-tr">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M0 10 L0 0 L10 0" stroke="rgba(74,158,255,0.7)" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <div class="cam-corner cam-corner-bl">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M0 10 L0 0 L10 0" stroke="rgba(74,158,255,0.7)" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <div class="cam-corner cam-corner-br">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M0 10 L0 0 L10 0" stroke="rgba(74,158,255,0.7)" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+
+          <div class="cam-status-bar">
+            <div class="cam-status-item"><span class="dot"></span>LIVE</div>
+            <div class="cam-status-item"><span class="dot"></span>REC</div>
+            <div class="cam-status-item"><span class="dot warn"></span>Motion: Clear</div>
+            <div class="cam-status-item">CAM-01 · 1080p</div>
+            <div class="cam-timestamp" id="cam-clock">--:--:--</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Active Devices</div>
+          <div class="stat-value">24</div>
+          <div class="stat-delta">+2 since yesterday</div>
+          <div class="stat-accent blue"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Open Alerts</div>
+          <div class="stat-value">3</div>
+          <div class="stat-delta warn">⚠ Requires attention</div>
+          <div class="stat-accent warn"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Uptime</div>
+          <div class="stat-value">99.8%</div>
+          <div class="stat-delta">30-day average</div>
+          <div class="stat-accent green"></div>
+        </div>
+      </div>
+
+      <!-- Device Inventory Table -->
+      <div class="section-label">Device Inventory</div>
+      <div class="devices-table">
+
+        <div class="table-head">
+          <div class="table-head-cell">Device</div>
+          <div class="table-head-cell">IP Address</div>
+          <div class="table-head-cell">Location</div>
+          <div class="table-head-cell">Status</div>
+        </div>
+
+        <!-- Core Router -->
+        <div class="table-row">
+          <div class="device-name">
+            <div class="device-icon">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="rgba(74,158,255,0.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            Core Router
+          </div>
+          <div class="table-cell">192.168.1.1</div>
+          <div class="table-cell">Server Room</div>
+          <div class="table-cell"><span class="status-badge online"><span class="badge-dot"></span>Online</span></div>
+        </div>
+
+        <!-- Access Switch 1 -->
+        <div class="table-row">
+          <div class="device-name">
+            <div class="device-icon">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                <rect x="2" y="8" width="20" height="8" rx="2" stroke="rgba(74,158,255,0.9)" stroke-width="1.5"/>
+                <circle cx="6" cy="12" r="1" fill="rgba(74,158,255,0.9)"/>
+              </svg>
+            </div>
+            Access Switch 1
+          </div>
+          <div class="table-cell">192.168.1.10</div>
+          <div class="table-cell">Laboratory</div>
+          <div class="table-cell"><span class="status-badge online"><span class="badge-dot"></span>Online</span></div>
+        </div>
+
+        <!-- Wireless AP -->
+        <div class="table-row">
+          <div class="device-name">
+            <div class="device-icon">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" stroke="rgba(74,158,255,0.9)" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            Wireless AP
+          </div>
+          <div class="table-cell">192.168.1.25</div>
+          <div class="table-cell">Hallway</div>
+          <div class="table-cell"><span class="status-badge online"><span class="badge-dot"></span>Online</span></div>
+        </div>
+
+        <!-- Firewall Node -->
+        <div class="table-row">
+          <div class="device-name">
+            <div class="device-icon">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                <rect x="4" y="4" width="16" height="16" rx="2" stroke="rgba(74,158,255,0.9)" stroke-width="1.5"/>
+                <path d="M9 9h6M9 12h6M9 15h4" stroke="rgba(74,158,255,0.9)" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            Firewall Node
+          </div>
+          <div class="table-cell">192.168.1.2</div>
+          <div class="table-cell">Server Room</div>
+          <div class="table-cell"><span class="status-badge warn"><span class="badge-dot"></span>Warning</span></div>
+        </div>
+
+        <!-- Access Switch 2 -->
+        <div class="table-row">
+          <div class="device-name">
+            <div class="device-icon">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                <rect x="2" y="8" width="20" height="8" rx="2" stroke="rgba(74,158,255,0.9)" stroke-width="1.5"/>
+                <circle cx="18" cy="12" r="1" fill="rgba(74,158,255,0.9)"/>
+                <circle cx="15" cy="12" r="1" fill="rgba(74,158,255,0.9)"/>
+              </svg>
+            </div>
+            Access Switch 2
+          </div>
+          <div class="table-cell">192.168.1.11</div>
+          <div class="table-cell">Conference Rm</div>
+          <div class="table-cell"><span class="status-badge offline"><span class="badge-dot"></span>Offline</span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function updateClock() {
+      const el = document.getElementById('cam-clock');
+      if (!el) return;
+      el.textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+
+</body>
 </html>
