@@ -3,25 +3,29 @@ import threading
 import time
 
 from flask import Flask, Response, redirect, render_template, request, session, url_for
+from flask_sock import Sock
 from functools import wraps
 from dotenv import load_dotenv
+import simple_websocket
 
 load_dotenv()
 
-app = Flask(__name__)
+app  = Flask(__name__)
+sock = Sock(app)
 app.secret_key = os.environ.get("SECRET_KEY", "change-me-in-production")
 
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
-
-# Shared secret the local agent must send in every push request.
-# Set INGEST_KEY to a long random string in your Railway environment variables.
-INGEST_KEY = os.environ.get("INGEST_KEY", "")
+INGEST_KEY     = os.environ.get("INGEST_KEY", "")
 
 # ── Thread-safe frame buffer ───────────────────────────────────────────────────
-_frame_lock  = threading.Lock()
+_frame_lock      = threading.Lock()
 _latest_frame: bytes | None = None
-_last_push_time: float = 0.0
+_last_push_time: float      = 0.0
+
+# ── Viewer registry (browser WebSocket connections) ───────────────────────────
+_viewers_lock = threading.Lock()
+_viewers: set = set()
 
 
 # ── Auth helpers ───────────────────────────────────────────────────────────────
@@ -32,22 +36,6 @@ def login_required(f):
             return redirect(url_for("login"))
         return f(*args, **kwargs)
     return decorated
-
-
-# ── MJPEG generator ────────────────────────────────────────────────────────────
-def _mjpeg_generator():
-    BOUNDARY      = b"--frame"
-    HEADER        = b"Content-Type: image/jpeg\r\n\r\n"
-    POLL_INTERVAL = 1 / 30
-
-    while True:
-        with _frame_lock:
-            frame = _latest_frame
-
-        if frame:
-            yield BOUNDARY + b"\r\n" + HEADER + frame + b"\r\n"
-
-        time.sleep(POLL_INTERVAL)
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -80,54 +68,96 @@ def logout():
 @login_required
 def dashboard():
     user       = session.get("user", "Admin")
-    agent_live = (time.time() - _last_push_time) < 10   # stale after 10 s
+    agent_live = (time.time() - _last_push_time) < 10
     return render_template("dashboard.html", user=user, agent_live=agent_live)
 
 
-@app.route("/video_feed")
-@login_required
-def video_feed():
-    """MJPEG stream consumed by the <img> tag in dashboard.html."""
-    return Response(
-        _mjpeg_generator(),
-        mimetype="multipart/x-mixed-replace; boundary=frame",
-    )
-
-
-@app.route("/ingest", methods=["POST"])
-def ingest():
+# ── Agent WebSocket (replaces /ingest POST) ───────────────────────────────────
+@sock.route("/ws/ingest")
+def ws_ingest(ws):
     """
-    Receives a single raw JPEG frame from the local Windows agent.
-
-    Required headers:
-        X-Ingest-Key: <INGEST_KEY>
-        Content-Type: image/jpeg
+    The local agent connects here and sends JPEG frames as binary messages.
+    First message must be the INGEST_KEY as UTF-8 text for auth.
     """
-    global _latest_frame, _last_push_time
+    global _latest_frame, _last_push_time, _viewers
 
     if not INGEST_KEY:
-        return "INGEST_KEY not configured on server", 500
+        ws.close(message="INGEST_KEY not configured")
+        return
 
-    if request.headers.get("X-Ingest-Key", "") != INGEST_KEY:
-        return "Unauthorized", 401
+    # Auth handshake — first message must be the key
+    try:
+        key = ws.receive(timeout=5)
+    except Exception:
+        ws.close(message="Auth timeout")
+        return
 
-    if not request.content_type or "image/jpeg" not in request.content_type:
-        return "Expected Content-Type: image/jpeg", 415
+    if key != INGEST_KEY:
+        ws.close(message="Unauthorized")
+        return
 
-    data = request.get_data()
-    if not data:
-        return "Empty body", 400
+    ws.send("OK")  # acknowledge auth
 
-    with _frame_lock:
-        _latest_frame   = data
-        _last_push_time = time.time()
+    print("[INFO] Agent connected via WebSocket")
 
-    return "OK", 200
+    try:
+        while True:
+            data = ws.receive()          # blocks until next frame arrives
+            if data is None:
+                break
+            if not isinstance(data, bytes):
+                continue                 # ignore unexpected text messages
+
+            with _frame_lock:
+                _latest_frame   = data
+                _last_push_time = time.time()
+
+            # Broadcast to all browser viewers
+            with _viewers_lock:
+                dead = set()
+                for viewer_ws in _viewers:
+                    try:
+                        viewer_ws.send(data)
+                    except Exception:
+                        dead.add(viewer_ws)
+                _viewers -= dead
+
+    except simple_websocket.ConnectionClosed:
+        pass
+
+    print("[INFO] Agent disconnected")
 
 
+# ── Browser viewer WebSocket ───────────────────────────────────────────────────
+@sock.route("/ws/view")
+def ws_view(ws):
+    """Browser connects here to receive JPEG frames as binary messages."""
+    if not session.get("logged_in"):
+        ws.close(message="Unauthorized")
+        return
+
+    with _viewers_lock:
+        _viewers.add(ws)
+
+    try:
+        # Send the latest frame immediately so the canvas isn't blank
+        with _frame_lock:
+            if _latest_frame:
+                ws.send(_latest_frame)
+
+        # Keep the connection alive; frames are pushed from ws_ingest
+        while True:
+            ws.receive(timeout=30)   # ping-like: just wait
+    except simple_websocket.ConnectionClosed:
+        pass
+    finally:
+        with _viewers_lock:
+            _viewers.discard(ws)
+
+
+# ── Legacy ingest status (still useful for debugging) ─────────────────────────
 @app.route("/ingest/status")
 def ingest_status():
-    """Quick health-check — useful for debugging the agent."""
     age = round(time.time() - _last_push_time, 1)
     return {"last_push_seconds_ago": age, "frame_available": _latest_frame is not None}
 
