@@ -69,6 +69,7 @@
       padding: 0 2rem; height: 56px;
       background: rgba(2,8,23,0.75);
       border-bottom: 0.5px solid var(--surface-border);
+      -webkit-backdrop-filter: blur(16px);
       backdrop-filter: blur(16px);
     }
     .topbar-brand {
@@ -182,6 +183,15 @@
       z-index: 2;
     }
 
+    .svg-1 {
+      position: absolute;
+      bottom: 36px;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 50%;
+    }
+
     /* Detection bounding boxes */
     .cam-detect {
       position: absolute;
@@ -240,6 +250,7 @@
     .cam-status-bar {
       position: absolute; bottom: 0; left: 0; right: 0;
       height: 36px; background: rgba(2,8,23,0.8);
+      -webkit-backdrop-filter: blur(8px);
       backdrop-filter: blur(8px);
       border-top: 0.5px solid rgba(255,255,255,0.08);
       display: flex; align-items: center;
@@ -285,6 +296,7 @@
       padding: 24px 26px;
       position: relative; overflow: hidden;
       transition: border-color 0.2s, background 0.2s;
+      -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
     }
     .stat-card::before {
@@ -335,7 +347,9 @@
       background: rgba(10,22,40,0.55);
       border: 0.5px solid rgba(255,255,255,0.09);
       border-radius: var(--radius-lg);
-      overflow: hidden; backdrop-filter: blur(12px);
+      overflow: hidden; 
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
     }
     .table-head {
       display: grid;
@@ -438,7 +452,7 @@
               <div class="rack-unit"></div><div class="rack-unit"></div>
               <div class="rack-unit"></div>
             </div>
-            <svg style="position:absolute;bottom:36px;left:0;right:0;width:100%;height:50%" viewBox="0 0 740 130" preserveAspectRatio="none">
+            <svg class="svg-1" viewBox="0 0 740 130" preserveAspectRatio="none">
               <line x1="0"   y1="130" x2="370" y2="40" stroke="rgba(74,158,255,0.06)" stroke-width="1"/>
               <line x1="740" y1="130" x2="370" y2="40" stroke="rgba(74,158,255,0.06)" stroke-width="1"/>
               <line x1="0"   y1="130" x2="370" y2="60" stroke="rgba(74,158,255,0.04)" stroke-width="1"/>
