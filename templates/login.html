@@ -1,291 +1,443 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Network Admin — Login</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Network Admin — Login</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    :root {
-      --navy-950: #020817;
-      --navy-900: #0a1628;
-      --navy-800: #0f2040;
-      --navy-700: #163058;
-      --navy-600: #1e4080;
-      --navy-500: #2456a8;
-      --navy-400: #3b6ec4;
-      --navy-300: #6b9dd6;
-      --accent:      #4a9eff;
-      --accent-glow: rgba(74,158,255,0.35);
-      --white: #ffffff;
-      --surface:        rgba(255,255,255,0.06);
-      --text-primary:   #f0f6ff;
-      --text-secondary: rgba(200,220,248,0.75);
-      --text-muted:     rgba(150,185,230,0.5);
-      --font-head: 'Space Grotesk', sans-serif;
-      --font-body: 'DM Sans', sans-serif;
-      --radius-md: 12px;
-      --radius-xl: 24px;
-    }
+      :root {
+        --navy-950: #020817;
+        --navy-900: #0a1628;
+        --navy-800: #0f2040;
+        --navy-700: #163058;
+        --navy-600: #1e4080;
+        --navy-500: #2456a8;
+        --navy-400: #3b6ec4;
+        --navy-300: #6b9dd6;
+        --accent: #4a9eff;
+        --accent-glow: rgba(74, 158, 255, 0.35);
+        --white: #ffffff;
+        --surface: rgba(255, 255, 255, 0.06);
+        --text-primary: #f0f6ff;
+        --text-secondary: rgba(200, 220, 248, 0.75);
+        --text-muted: rgba(150, 185, 230, 0.5);
+        --font-head: "Space Grotesk", sans-serif;
+        --font-body: "DM Sans", sans-serif;
+        --radius-md: 12px;
+        --radius-xl: 24px;
+      }
 
-    body {
-      font-family: var(--font-body);
-      background: var(--navy-950);
-      color: var(--text-primary);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+      body {
+        font-family: var(--font-body);
+        background: var(--navy-950);
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
 
-    /* ── ANIMATIONS ─────────────────────────────────────────── */
-    @keyframes blobDrift1 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      33%     { transform: translate(60px,80px) scale(1.08); }
-      66%     { transform: translate(-40px,50px) scale(0.95); }
-    }
-    @keyframes blobDrift2 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      33%     { transform: translate(-70px,-60px) scale(1.1); }
-      66%     { transform: translate(50px,-30px) scale(0.92); }
-    }
-    @keyframes blobDrift3 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      25%     { transform: translate(-80px,60px) scale(1.15); }
-      75%     { transform: translate(50px,-80px) scale(0.88); }
-    }
-    @keyframes blobDrift4 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      50%     { transform: translate(90px,-50px) scale(1.12); }
-    }
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(28px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
+      /* ── ANIMATIONS ─────────────────────────────────────────── */
+      @keyframes blobDrift1 {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        33% {
+          transform: translate(60px, 80px) scale(1.08);
+        }
+        66% {
+          transform: translate(-40px, 50px) scale(0.95);
+        }
+      }
+      @keyframes blobDrift2 {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        33% {
+          transform: translate(-70px, -60px) scale(1.1);
+        }
+        66% {
+          transform: translate(50px, -30px) scale(0.92);
+        }
+      }
+      @keyframes blobDrift3 {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        25% {
+          transform: translate(-80px, 60px) scale(1.15);
+        }
+        75% {
+          transform: translate(50px, -80px) scale(0.88);
+        }
+      }
+      @keyframes blobDrift4 {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(90px, -50px) scale(1.12);
+        }
+      }
+      @keyframes cardIn {
+        from {
+          opacity: 0;
+          transform: translateY(28px) scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
 
-    /* ── PAGE LAYOUT ────────────────────────────────────────── */
-    .login-page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
+      /* ── PAGE LAYOUT ────────────────────────────────────────── */
+      .login-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
 
-    /* ── ANIMATED BLOBS ─────────────────────────────────────── */
-    .blob-canvas {
-      position: absolute; inset: 0;
-      pointer-events: none; z-index: 0;
-    }
-    .blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(90px);
-      opacity: 0.18;
-    }
-    .blob-1 {
-      width: 700px; height: 700px;
-      background: radial-gradient(circle, #1e4080, #0a1628 70%);
-      top: -180px; left: -200px;
-      animation: blobDrift1 18s ease-in-out infinite;
-    }
-    .blob-2 {
-      width: 550px; height: 550px;
-      background: radial-gradient(circle, #2456a8, #163058 70%);
-      bottom: -100px; right: -100px;
-      animation: blobDrift2 22s ease-in-out infinite;
-      opacity: 0.22;
-    }
-    .blob-3 {
-      width: 420px; height: 420px;
-      background: radial-gradient(circle, #4a9eff, #2456a8 70%);
-      top: 35%; left: 55%;
-      animation: blobDrift3 28s ease-in-out infinite;
-      opacity: 0.12;
-    }
-    .blob-4 {
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, #0f2040, #2456a8 70%);
-      top: 60%; left: 20%;
-      animation: blobDrift4 20s ease-in-out infinite;
-      opacity: 0.2;
-    }
+      /* ── ANIMATED BLOBS ─────────────────────────────────────── */
+      .blob-canvas {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        opacity: 0.18;
+      }
+      .blob-1 {
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle, #1e4080, #0a1628 70%);
+        top: -180px;
+        left: -200px;
+        animation: blobDrift1 18s ease-in-out infinite;
+      }
+      .blob-2 {
+        width: 550px;
+        height: 550px;
+        background: radial-gradient(circle, #2456a8, #163058 70%);
+        bottom: -100px;
+        right: -100px;
+        animation: blobDrift2 22s ease-in-out infinite;
+        opacity: 0.22;
+      }
+      .blob-3 {
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, #4a9eff, #2456a8 70%);
+        top: 35%;
+        left: 55%;
+        animation: blobDrift3 28s ease-in-out infinite;
+        opacity: 0.12;
+      }
+      .blob-4 {
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, #0f2040, #2456a8 70%);
+        top: 60%;
+        left: 20%;
+        animation: blobDrift4 20s ease-in-out infinite;
+        opacity: 0.2;
+      }
 
-    /* ── NOISE OVERLAY ──────────────────────────────────────── */
-    .noise {
-      position: absolute; inset: 0; z-index: 1;
-      opacity: 0.03;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 180px 180px;
-      pointer-events: none;
-    }
+      /* ── NOISE OVERLAY ──────────────────────────────────────── */
+      .noise {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        opacity: 0.03;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+        pointer-events: none;
+      }
 
-    /* ── GRID LINES ─────────────────────────────────────────── */
-    .grid-lines {
-      position: absolute; inset: 0; z-index: 1;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-    }
+      /* ── GRID LINES ─────────────────────────────────────────── */
+      .grid-lines {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px
+          );
+        background-size: 48px 48px;
+        pointer-events: none;
+      }
 
-    /* ── GLASS CARD ─────────────────────────────────────────── */
-    .login-card {
-      position: relative; z-index: 10;
-      width: 420px;
-      background: rgba(10,22,40,0.75);
-      border: 0.5px solid rgba(255,255,255,0.1);
-      border-radius: var(--radius-xl);
-      padding: 44px 44px 40px;
-      -webkit-backdrop-filter: blur(24px);
-      backdrop-filter: blur(24px);
-      box-shadow:
-        0 0 0 0.5px rgba(74,158,255,0.12),
-        0 32px 80px rgba(0,0,0,0.7),
-        0 0 60px rgba(30,64,128,0.25) inset;
-      animation: cardIn 0.8s cubic-bezier(0.22,1,0.36,1) both;
-    }
+      /* ── GLASS CARD ─────────────────────────────────────────── */
+      .login-card {
+        position: relative;
+        z-index: 10;
+        width: 420px;
+        background: rgba(10, 22, 40, 0.75);
+        border: 0.5px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-xl);
+        padding: 44px 44px 40px;
+        -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(24px);
+        box-shadow:
+          0 0 0 0.5px rgba(74, 158, 255, 0.12),
+          0 32px 80px rgba(0, 0, 0, 0.7),
+          0 0 60px rgba(30, 64, 128, 0.25) inset;
+        animation: cardIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
 
-    .login-eyebrow {
-      font-size: 11px; font-weight: 500;
-      letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 10px;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .login-eyebrow::before {
-      content: '';
-      display: block; width: 18px; height: 1.5px;
-      background: var(--accent); border-radius: 2px;
-    }
+      .login-eyebrow {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .login-eyebrow::before {
+        content: "";
+        display: block;
+        width: 18px;
+        height: 1.5px;
+        background: var(--accent);
+        border-radius: 2px;
+      }
 
-    .login-title {
-      font-family: var(--font-head);
-      font-size: 28px; font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: -0.02em; margin-bottom: 6px; line-height: 1.2;
-    }
-    .login-subtitle {
-      font-size: 13px; color: var(--text-muted); margin-bottom: 36px;
-    }
+      .login-title {
+        font-family: var(--font-head);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+        line-height: 1.2;
+      }
+      .login-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 36px;
+      }
 
-    /* ── FIELDS ─────────────────────────────────────────────── */
-    .field-group { margin-bottom: 20px; }
+      /* ── FIELDS ─────────────────────────────────────────────── */
+      .field-group {
+        margin-bottom: 20px;
+      }
 
-    .field-label {
-      display: block; font-size: 12px; font-weight: 500;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--text-secondary); margin-bottom: 8px;
-    }
+      .field-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+      }
 
-    .field-input {
-      width: 100%; height: 48px;
-      background: rgba(255,255,255,0.05);
-      border: 0.5px solid rgba(255,255,255,0.12);
-      border-radius: var(--radius-md);
-      padding: 0 16px;
-      font-family: var(--font-body); font-size: 14px;
-      color: var(--text-primary);
-      outline: none;
-      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-      caret-color: var(--accent);
-    }
-    .field-input::placeholder { color: var(--text-muted); }
-    .field-input:focus {
-      border-color: rgba(74,158,255,0.5);
-      background: rgba(74,158,255,0.06);
-      box-shadow: 0 0 0 3px rgba(74,158,255,0.12);
-    }
+      .field-input {
+        width: 100%;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 0.5px solid rgba(255, 255, 255, 0.12);
+        border-radius: var(--radius-md);
+        padding: 0 16px;
+        font-family: var(--font-body);
+        font-size: 14px;
+        color: var(--text-primary);
+        outline: none;
+        transition:
+          border-color 0.2s,
+          background 0.2s,
+          box-shadow 0.2s;
+        caret-color: var(--accent);
+      }
+      .field-input::placeholder {
+        color: var(--text-muted);
+      }
+      .field-input:focus {
+        border-color: rgba(74, 158, 255, 0.5);
+        background: rgba(74, 158, 255, 0.06);
+        box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.12);
+      }
 
-    .field-row {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
-    }
-    .field-check {
-      width: 16px; height: 16px;
-      accent-color: var(--accent); cursor: pointer;
-    }
-    .field-check-label {
-      font-size: 13px; color: var(--text-secondary);
-      cursor: pointer; -webkit-user-select: none; user-select: none;
-    }
-    .field-forgot {
-      margin-left: auto; font-size: 13px;
-      color: var(--navy-300); text-decoration: none; cursor: pointer;
-    }
-    .field-forgot:hover { color: var(--accent); }
+      .field-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+      }
+      .field-check {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+      .field-check-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      .field-forgot {
+        margin-left: auto;
+        font-size: 13px;
+        color: var(--navy-300);
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .field-forgot:hover {
+        color: var(--accent);
+      }
 
-    /* ── SIGN IN BUTTON ─────────────────────────────────────── */
-    .btn-login {
-      width: 100%; height: 50px;
-      background: linear-gradient(135deg, var(--navy-600) 0%, var(--navy-500) 50%, #3b6ec4 100%);
-      border: none; border-radius: var(--radius-md);
-      color: var(--white); font-family: var(--font-head);
-      font-size: 15px; font-weight: 600; letter-spacing: 0.02em;
-      cursor: pointer; position: relative; overflow: hidden;
-      transition: opacity 0.2s, transform 0.15s;
-      box-shadow: 0 4px 24px rgba(36,86,168,0.4), 0 1px 0 rgba(255,255,255,0.08) inset;
-    }
-    .btn-login::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
-      transform: translateX(-100%); transition: transform 0.5s;
-    }
-    .btn-login:hover::after { transform: translateX(100%); }
-    .btn-login:hover  { opacity: 0.92; }
-    .btn-login:active { transform: scale(0.98); }
+      /* ── SIGN IN BUTTON ─────────────────────────────────────── */
+      .btn-login {
+        width: 100%;
+        height: 50px;
+        background: linear-gradient(
+          135deg,
+          var(--navy-600) 0%,
+          var(--navy-500) 50%,
+          #3b6ec4 100%
+        );
+        border: none;
+        border-radius: var(--radius-md);
+        color: var(--white);
+        font-family: var(--font-head);
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition:
+          opacity 0.2s,
+          transform 0.15s;
+        box-shadow:
+          0 4px 24px rgba(36, 86, 168, 0.4),
+          0 1px 0 rgba(255, 255, 255, 0.08) inset;
+      }
+      .btn-login::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.08) 50%,
+          transparent 100%
+        );
+        transform: translateX(-100%);
+        transition: transform 0.5s;
+      }
+      .btn-login:hover::after {
+        transform: translateX(100%);
+      }
+      .btn-login:hover {
+        opacity: 0.92;
+      }
+      .btn-login:active {
+        transform: scale(0.98);
+      }
 
-    /* ── FOOTER ─────────────────────────────────────────────── */
-    .login-footer {
-      text-align: center; margin-top: 24px;
-      font-size: 12px; color: var(--text-muted);
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .login-footer::before, .login-footer::after {
-      content: ''; flex: 1; height: 0.5px;
-      background: rgba(255,255,255,0.1);
-    }
-  </style>
-</head>
-<body>
-
-  <div class="login-page">
-
-    <!-- Animated blob background -->
-    <div class="blob-canvas">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
-      <div class="blob blob-4"></div>
-    </div>
-
-    <!-- Noise + grid overlays -->
-    <div class="noise"></div>
-    <div class="grid-lines"></div>
-
-    <!-- Glass card -->
-    <div class="login-card">
-
-      <div class="login-eyebrow">Secure Access</div>
-      <h1 class="login-title">Network Admin Login</h1>
-      <p class="login-subtitle">Enter your credentials to access the control panel</p>
-
-      <div class="field-group">
-        <label class="field-label" for="username">Username</label>
-        <input class="field-input" id="username" type="text" placeholder="admin-12" value="admin-12" autocomplete="username" />
+      /* ── FOOTER ─────────────────────────────────────────────── */
+      .login-footer {
+        text-align: center;
+        margin-top: 24px;
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .login-footer::before,
+      .login-footer::after {
+        content: "";
+        flex: 1;
+        height: 0.5px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-page">
+      <div class="blob-canvas">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
       </div>
+      <div class="noise"></div>
+      <div class="grid-lines"></div>
 
-      <div class="field-group">
-        <label class="field-label" for="password">Password</label>
-        <input class="field-input" id="password" type="password" placeholder="••••••••" value="password" autocomplete="current-password" />
+      <div class="login-card">
+        <div class="login-eyebrow">Secure Access</div>
+        <h1 class="login-title">Network Admin Login</h1>
+        <p class="login-subtitle">
+          Enter your credentials to access the control panel
+        </p>
+
+        <form method="POST" action="/login">
+          {% if error %}
+          <div class="error-msg">{{ error }}</div>
+          {% endif %}
+
+          <div class="field-group">
+            <label class="field-label" for="username">Username</label>
+            <input
+              class="field-input"
+              id="username"
+              name="username"
+              type="text"
+              placeholder="Username"
+              autocomplete="username"
+              required
+            />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="password">Password</label>
+            <input
+              class="field-input"
+              id="password"
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <button class="btn-login" type="submit">Log in</button>
+        </form>
+
+        <div class="login-footer">Encrypted connection · TLS 1.3</div>
       </div>
-
-      <button class="btn-login" onclick="window.location.href='dashboard.html'">Log in</button>
-
-      <div class="login-footer">Encrypted connection · TLS 1.3</div>
-
     </div>
-  </div>
-
-</body>
+  </body>
 </html>
