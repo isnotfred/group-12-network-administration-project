@@ -139,6 +139,7 @@
       border: 0.5px solid rgba(255,255,255,0.1);
       border-radius: var(--radius-xl);
       padding: 44px 44px 40px;
+      -webkit-backdrop-filter: blur(24px);
       backdrop-filter: blur(24px);
       box-shadow:
         0 0 0 0.5px rgba(74,158,255,0.12),
@@ -206,7 +207,7 @@
     }
     .field-check-label {
       font-size: 13px; color: var(--text-secondary);
-      cursor: pointer; user-select: none;
+      cursor: pointer; -webkit-user-select: none; user-select: none;
     }
     .field-forgot {
       margin-left: auto; font-size: 13px;
