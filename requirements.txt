@@ -1,4 +1,5 @@
 flask>=3.0
 flask-sock>=0.7
 python-dotenv>=1.0
+psycopg2-binary>=2.9.9
 gunicorn>=21.0

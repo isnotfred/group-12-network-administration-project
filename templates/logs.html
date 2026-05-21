@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Network Administration — Logs</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --navy-950: #020817;
+        --navy-900: #0a1628;
+        --navy-800: #0f2040;
+        --navy-700: #163058;
+        --navy-600: #1e4080;
+        --navy-500: #2456a8;
+        --navy-400: #3b6ec4;
+        --navy-300: #6b9dd6;
+        --accent: #4a9eff;
+        --accent-glow: rgba(74, 158, 255, 0.35);
+        --white: #ffffff;
+        --surface: rgba(255, 255, 255, 0.06);
+        --surface-border: rgba(255, 255, 255, 0.12);
+        --text-primary: #f0f6ff;
+        --text-secondary: rgba(200, 220, 248, 0.75);
+        --text-muted: rgba(150, 185, 230, 0.5);
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --font-head: "Space Grotesk", sans-serif;
+        --font-body: "DM Sans", sans-serif;
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 18px;
+        --radius-xl: 24px;
+      }
+
+      body {
+        font-family: var(--font-body);
+        background: var(--navy-950);
+        color: var(--text-primary);
+        min-height: 100vh;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.6;
+          transform: scale(0.8);
+        }
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: -600px 0;
+        }
+        100% {
+          background-position: 600px 0;
+        }
+      }
+
+      /* ── TOPBAR ── */
+      .topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        height: 56px;
+        background: rgba(2, 8, 23, 0.75);
+        border-bottom: 0.5px solid var(--surface-border);
+        -webkit-backdrop-filter: blur(16px);
+        backdrop-filter: blur(16px);
+      }
+      .topbar-brand {
+        font-family: var(--font-head);
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .topbar-brand .dot {
+        width: 8px;
+        height: 8px;
+        background: var(--accent);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--accent-glow);
+        animation: pulse 2s ease-in-out infinite;
+      }
+      .topbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .topbar-link {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--navy-300);
+        text-decoration: none;
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        border: 0.5px solid transparent;
+        transition: all 0.2s;
+      }
+      .topbar-link:hover {
+        color: var(--text-primary);
+        background: var(--surface);
+        border-color: var(--surface-border);
+      }
+      .topbar-link.active {
+        color: var(--accent);
+        border-color: rgba(74, 158, 255, 0.3);
+        background: rgba(74, 158, 255, 0.07);
+      }
+      .topbar-logout {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--navy-300);
+        text-decoration: none;
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        border: 0.5px solid rgba(107, 157, 214, 0.3);
+        transition: all 0.2s;
+        background: transparent;
+        cursor: pointer;
+      }
+      .topbar-logout:hover {
+        color: var(--text-primary);
+        border-color: var(--navy-300);
+        background: var(--surface);
+      }
+
+      /* ── LAYOUT ── */
+      .logs-page {
+        min-height: 100vh;
+        background: linear-gradient(
+          160deg,
+          var(--navy-950) 0%,
+          #060e1e 60%,
+          var(--navy-900) 100%
+        );
+        padding-top: 56px;
+      }
+      .logs-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 48px 32px 80px;
+      }
+
+      /* ── PAGE HEADER ── */
+      .page-header {
+        margin-bottom: 36px;
+      }
+      .page-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 10px;
+      }
+      .page-eyebrow .tag-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+        animation: pulse 2s ease-in-out infinite;
+      }
+      .page-title {
+        font-family: var(--font-head);
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+      }
+      .page-sub {
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+
+      /* ── TOOLBAR ── */
+      .logs-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      .filter-group {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        padding: 7px 16px;
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        border: 0.5px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-muted);
+        transition: all 0.2s;
+      }
+      .filter-btn:hover {
+        border-color: rgba(74, 158, 255, 0.3);
+        color: var(--text-secondary);
+        background: rgba(74, 158, 255, 0.06);
+      }
+      .filter-btn.active {
+        border-color: rgba(74, 158, 255, 0.45);
+        color: var(--accent);
+        background: rgba(74, 158, 255, 0.1);
+      }
+      .filter-btn.active.login-ok {
+        border-color: rgba(34, 197, 94, 0.45);
+        color: #4ade80;
+        background: rgba(34, 197, 94, 0.1);
+      }
+      .filter-btn.active.login-fail {
+        border-color: rgba(239, 68, 68, 0.45);
+        color: #f87171;
+        background: rgba(239, 68, 68, 0.1);
+      }
+      .filter-btn.active.new-device {
+        border-color: rgba(74, 158, 255, 0.45);
+        color: var(--accent);
+        background: rgba(74, 158, 255, 0.1);
+      }
+
+      .toolbar-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .refresh-btn {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 16px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        border: 0.5px solid rgba(74, 158, 255, 0.25);
+        background: rgba(74, 158, 255, 0.07);
+        color: var(--accent);
+        transition: all 0.2s;
+      }
+      .refresh-btn:hover {
+        background: rgba(74, 158, 255, 0.15);
+      }
+      .refresh-btn svg {
+        transition: transform 0.4s;
+      }
+      .refresh-btn.spinning svg {
+        animation: spin 0.7s linear infinite;
+      }
+
+      .total-badge {
+        font-size: 12px;
+        color: var(--text-muted);
+        padding: 6px 14px;
+        border: 0.5px solid rgba(255, 255, 255, 0.08);
+        border-radius: 100px;
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .total-badge span {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      /* ── LOG TABLE ── */
+      .logs-table {
+        background: rgba(10, 22, 40, 0.55);
+        border: 0.5px solid rgba(255, 255, 255, 0.09);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+      }
+      .logs-table-head {
+        display: grid;
+        grid-template-columns: 36px 140px 1fr 120px 120px 160px;
+        padding: 13px 20px;
+        border-bottom: 0.5px solid rgba(255, 255, 255, 0.07);
+        background: rgba(15, 32, 64, 0.35);
+      }
+      .th {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .log-row {
+        display: grid;
+        grid-template-columns: 36px 140px 1fr 120px 120px 160px;
+        padding: 16px 20px;
+        border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+        align-items: center;
+        gap: 0;
+        transition: background 0.15s;
+        animation: fadeIn 0.25s ease both;
+      }
+      .log-row:last-child {
+        border-bottom: none;
+      }
+      .log-row:hover {
+        background: rgba(74, 158, 255, 0.04);
+      }
+
+      /* Icon col */
+      .log-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .log-icon.login-ok {
+        background: rgba(34, 197, 94, 0.12);
+        color: #4ade80;
+        border: 0.5px solid rgba(34, 197, 94, 0.2);
+      }
+      .log-icon.login-fail {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+        border: 0.5px solid rgba(239, 68, 68, 0.2);
+      }
+      .log-icon.logout {
+        background: rgba(150, 185, 230, 0.08);
+        color: var(--navy-300);
+        border: 0.5px solid rgba(150, 185, 230, 0.15);
+      }
+      .log-icon.new-device {
+        background: rgba(74, 158, 255, 0.1);
+        color: var(--accent);
+        border: 0.5px solid rgba(74, 158, 255, 0.2);
+      }
+      .log-icon.default {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-muted);
+        border: 0.5px solid rgba(255, 255, 255, 0.08);
+      }
+
+      /* Type pill col */
+      .log-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 100px;
+        width: fit-content;
+      }
+      .log-pill .pill-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .log-pill.login-ok {
+        background: rgba(34, 197, 94, 0.1);
+        color: #4ade80;
+      }
+      .log-pill.login-fail {
+        background: rgba(239, 68, 68, 0.1);
+        color: #f87171;
+      }
+      .log-pill.logout {
+        background: rgba(150, 185, 230, 0.08);
+        color: var(--navy-300);
+      }
+      .log-pill.new-device {
+        background: rgba(74, 158, 255, 0.1);
+        color: var(--accent);
+      }
+      .log-pill.default {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-muted);
+      }
+
+      /* Message col */
+      .log-msg-col {
+        padding-right: 16px;
+        min-width: 0;
+      }
+      .log-msg {
+        font-size: 13px;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 3px;
+      }
+      .log-submsg {
+        font-size: 11px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* IP col */
+      .log-ip {
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      /* User col */
+      .log-user {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      /* Timestamp col */
+      .log-ts {
+        font-family: "Courier New", monospace;
+        font-size: 11px;
+        color: var(--text-muted);
+        letter-spacing: 0.04em;
+      }
+
+      /* ── SKELETON ROWS ── */
+      .skeleton-row {
+        display: grid;
+        grid-template-columns: 36px 140px 1fr 120px 120px 160px;
+        padding: 16px 20px;
+        border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+        align-items: center;
+        gap: 0;
+      }
+      .skel {
+        height: 14px;
+        border-radius: 6px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.04) 0%,
+          rgba(255, 255, 255, 0.09) 50%,
+          rgba(255, 255, 255, 0.04) 100%
+        );
+        background-size: 600px 100%;
+        animation: shimmer 1.5s infinite;
+      }
+      .skel-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+      }
+      .skel-pill {
+        width: 90px;
+        height: 20px;
+        border-radius: 100px;
+      }
+      .skel-msg {
+        width: 80%;
+      }
+      .skel-ip {
+        width: 100px;
+      }
+      .skel-user {
+        width: 80px;
+      }
+      .skel-ts {
+        width: 130px;
+      }
+
+      /* ── EMPTY STATE ── */
+      .empty-state {
+        padding: 64px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+      .empty-state svg {
+        margin: 0 auto 16px;
+        display: block;
+        opacity: 0.35;
+      }
+
+      /* ── PAGINATION ── */
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding: 0 4px;
+      }
+      .pagination-info {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .pagination-info strong {
+        color: var(--text-secondary);
+      }
+      .pagination-btns {
+        display: flex;
+        gap: 8px;
+      }
+      .page-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        border: 0.5px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-secondary);
+        transition: all 0.2s;
+        text-decoration: none;
+      }
+      .page-btn:hover:not(:disabled) {
+        border-color: rgba(74, 158, 255, 0.35);
+        color: var(--accent);
+        background: rgba(74, 158, 255, 0.07);
+      }
+      .page-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      .page-btn.primary {
+        background: rgba(74, 158, 255, 0.1);
+        border-color: rgba(74, 158, 255, 0.35);
+        color: var(--accent);
+      }
+      .page-btn.primary:hover {
+        background: rgba(74, 158, 255, 0.18);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="logs-page">
+      <nav class="topbar">
+        <div class="topbar-brand">
+          <span class="dot"></span>Network Administration
+        </div>
+        <div class="topbar-nav">
+          <a class="topbar-link" href="/dashboard">Dashboard</a>
+          <a class="topbar-link active" href="/logs">Logs</a>
+          <a class="topbar-logout" href="/logout">Log out</a>
+        </div>
+      </nav>
+
+      <div class="logs-inner">
+        <!-- Header -->
+        <div class="page-header">
+          <div class="page-eyebrow">
+            <span class="tag-dot"></span>Audit Trail
+          </div>
+          <h1 class="page-title">System Logs</h1>
+          <p class="page-sub">
+            Login attempts, new device discovery, and other system events.
+          </p>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="logs-toolbar">
+          <div class="filter-group">
+            <button class="filter-btn active" data-type="">All Events</button>
+            <button class="filter-btn login-ok" data-type="login_success">
+              Login OK
+            </button>
+            <button class="filter-btn login-fail" data-type="login_failed">
+              Login Failed
+            </button>
+            <button class="filter-btn new-device" data-type="new_device">
+              New Device
+            </button>
+            <button class="filter-btn" data-type="logout">Logout</button>
+          </div>
+          <div class="toolbar-right">
+            <div class="total-badge">
+              Total: <span id="total-count">—</span>
+            </div>
+            <button class="refresh-btn" id="refresh-btn">
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="logs-table">
+          <div class="logs-table-head">
+            <div class="th"></div>
+            <div class="th">Type</div>
+            <div class="th">Message</div>
+            <div class="th">IP Address</div>
+            <div class="th">User</div>
+            <div class="th">Timestamp</div>
+          </div>
+          <div id="logs-body">
+            <!-- skeleton -->
+            <div class="skeleton-row">
+              <div class="skel skel-icon"></div>
+              <div class="skel skel-pill"></div>
+              <div class="skel skel-msg"></div>
+              <div class="skel skel-ip"></div>
+              <div class="skel skel-user"></div>
+              <div class="skel skel-ts"></div>
+            </div>
+            <div class="skeleton-row">
+              <div class="skel skel-icon"></div>
+              <div class="skel skel-pill"></div>
+              <div class="skel skel-msg"></div>
+              <div class="skel skel-ip"></div>
+              <div class="skel skel-user"></div>
+              <div class="skel skel-ts"></div>
+            </div>
+            <div class="skeleton-row">
+              <div class="skel skel-icon"></div>
+              <div class="skel skel-pill"></div>
+              <div class="skel skel-msg"></div>
+              <div class="skel skel-ip"></div>
+              <div class="skel skel-user"></div>
+              <div class="skel skel-ts"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <div class="pagination-info" id="page-info">Loading…</div>
+          <div class="pagination-btns">
+            <button class="page-btn" id="prev-btn" disabled>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M15 18l-6-6 6-6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              Newer
+            </button>
+            <button class="page-btn primary" id="next-btn" disabled>
+              Older
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M9 18l6-6-6-6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ── State ──────────────────────────────────────────────────────────────
+      const LIMIT = 25;
+      let cursorStack = []; // stack of before_id values for "back" navigation
+      let currentBeforeId = null;
+      let currentAfterId = null;
+      let activeType = ""; // "" = all
+      let firstId = null; // id of first row on current page (for "newer")
+      let lastId = null; // id of last row on current page (for "older")
+      let totalCount = 0;
+      let currentOffset = 0;
+
+      // ── Type helpers ───────────────────────────────────────────────────────
+      function resolveTypeClass(type, success) {
+        if (type === "login") return success ? "login-ok" : "login-fail";
+        if (type === "logout") return "logout";
+        if (type === "new_device") return "new-device";
+        return "default";
+      }
+
+      function resolveTypeLabel(type, success) {
+        if (type === "login") return success ? "Login OK" : "Login Fail";
+        if (type === "logout") return "Logout";
+        if (type === "new_device") return "New Device";
+        return type;
+      }
+
+      // Filter type sent to API: "login_success" / "login_failed" → we need special handling
+      function apiTypeParam(filterType) {
+        // API accepts "login", "logout", "new_device"
+        // For login_success / login_failed we filter on "login" and then filter client-side
+        // Actually, let's encode it in the URL and handle server-side later.
+        // For now we send full type to the backend; the backend stores "login" for both and
+        // we'll add client-side filtering by success field.
+        if (filterType === "login_success" || filterType === "login_failed")
+          return "login";
+        return filterType;
+      }
+
+      function matchesFilter(log) {
+        if (!activeType) return true;
+        if (activeType === "login_success")
+          return log.type === "login" && log.success === true;
+        if (activeType === "login_failed")
+          return log.type === "login" && log.success === false;
+        return log.type === activeType;
+      }
+
+      // ── Icon SVG ───────────────────────────────────────────────────────────
+      function iconSvg(cls) {
+        const icons = {
+          "login-ok": `<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+          "login-fail": `<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+          logout: `<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+          "new-device": `<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+          default: `<svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+        };
+        return icons[cls] || icons["default"];
+      }
+
+      // ── Sub-message from meta ──────────────────────────────────────────────
+      function subMsg(log) {
+        if (!log.meta) return "";
+        const m =
+          typeof log.meta === "string" ? JSON.parse(log.meta) : log.meta;
+        if (log.type === "login" && m.user_agent)
+          return truncate(m.user_agent, 60);
+        if (log.type === "new_device") {
+          const parts = [];
+          if (m.mac && m.mac !== "N/A") parts.push(`MAC: ${m.mac}`);
+          if (m.vendor && m.vendor !== "Unknown") parts.push(m.vendor);
+          if (m.open_ports && m.open_ports.length)
+            parts.push(`Ports: ${m.open_ports.join(", ")}`);
+          return parts.join(" · ");
+        }
+        return "";
+      }
+
+      function truncate(str, n) {
+        return str.length > n ? str.slice(0, n) + "…" : str;
+      }
+
+      function fmtTs(iso) {
+        if (!iso) return "—";
+        const d = new Date(iso);
+        const date = d.toLocaleDateString("en-CA"); // YYYY-MM-DD
+        const time = d.toLocaleTimeString("en-GB", { hour12: false }); // HH:MM:SS
+        return `${date} ${time}`;
+      }
+
+      // ── Render ─────────────────────────────────────────────────────────────
+      function renderRows(logs) {
+        const body = document.getElementById("logs-body");
+
+        if (!logs.length) {
+          body.innerHTML = `
+            <div class="empty-state">
+              <svg width="40" height="40" fill="none" viewBox="0 0 24 24">
+                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              No log entries found for this filter.
+            </div>`;
+          return;
+        }
+
+        body.innerHTML = logs
+          .map((log, i) => {
+            const cls = resolveTypeClass(log.type, log.success);
+            const label = resolveTypeLabel(log.type, log.success);
+            const sub = subMsg(log);
+            return `
+          <div class="log-row" style="animation-delay:${i * 0.03}s">
+            <div class="log-icon ${cls}">${iconSvg(cls)}</div>
+            <div><span class="log-pill ${cls}"><span class="pill-dot"></span>${label}</span></div>
+            <div class="log-msg-col">
+              <div class="log-msg">${escHtml(log.message)}</div>
+              ${sub ? `<div class="log-submsg">${escHtml(sub)}</div>` : ""}
+            </div>
+            <div class="log-ip">${escHtml(log.ip || "—")}</div>
+            <div class="log-user">${escHtml(log.username || "—")}</div>
+            <div class="log-ts">${fmtTs(log.created_at)}</div>
+          </div>`;
+          })
+          .join("");
+      }
+
+      function escHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      // ── Fetch ──────────────────────────────────────────────────────────────
+      async function fetchLogs({ beforeId = null, afterId = null } = {}) {
+        const btn = document.getElementById("refresh-btn");
+        btn.classList.add("spinning");
+
+        const params = new URLSearchParams({ limit: LIMIT });
+        const apiType = apiTypeParam(activeType);
+        if (apiType) params.set("type", apiType);
+        if (beforeId) params.set("before_id", beforeId);
+        if (afterId) params.set("after_id", afterId);
+
+        try {
+          const res = await fetch(`/api/logs?${params}`);
+          const data = await res.json();
+
+          // Client-side filter for login_success / login_failed
+          let logs = data.logs;
+          if (activeType === "login_success" || activeType === "login_failed") {
+            logs = logs.filter(matchesFilter);
+          }
+
+          totalCount = data.total;
+          document.getElementById("total-count").textContent =
+            totalCount.toLocaleString();
+
+          firstId = logs.length ? logs[0].id : null;
+          lastId = logs.length ? logs[logs.length - 1].id : null;
+
+          renderRows(logs);
+          updatePagination(data);
+        } catch (e) {
+          document.getElementById("logs-body").innerHTML =
+            `<div class="empty-state" style="color:var(--danger)">Failed to load logs. Check your connection.</div>`;
+        } finally {
+          btn.classList.remove("spinning");
+        }
+      }
+
+      function updatePagination(data) {
+        const prevBtn = document.getElementById("prev-btn");
+        const nextBtn = document.getElementById("next-btn");
+        const info = document.getElementById("page-info");
+
+        prevBtn.disabled = cursorStack.length === 0;
+        nextBtn.disabled = !data.next_cursor;
+
+        const shown = document.querySelectorAll(".log-row").length;
+        info.innerHTML = shown
+          ? `Showing <strong>${shown}</strong> of <strong>${totalCount.toLocaleString()}</strong> events`
+          : `<strong>0</strong> events found`;
+      }
+
+      // ── Controls ───────────────────────────────────────────────────────────
+      document.getElementById("refresh-btn").addEventListener("click", () => {
+        cursorStack = [];
+        currentBeforeId = null;
+        fetchLogs();
+      });
+
+      document.getElementById("next-btn").addEventListener("click", () => {
+        if (!lastId) return;
+        cursorStack.push(firstId); // save current page's top for "back"
+        fetchLogs({ beforeId: lastId });
+        currentBeforeId = lastId;
+      });
+
+      document.getElementById("prev-btn").addEventListener("click", () => {
+        if (!cursorStack.length) return;
+        const prevTop = cursorStack.pop();
+        if (cursorStack.length === 0) {
+          fetchLogs();
+        } else {
+          fetchLogs({ beforeId: prevTop });
+        }
+      });
+
+      document.querySelectorAll(".filter-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".filter-btn")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeType = btn.dataset.type;
+          cursorStack = [];
+          currentBeforeId = null;
+          fetchLogs();
+        });
+      });
+
+      // ── Auto-refresh every 30s ─────────────────────────────────────────────
+      setInterval(() => {
+        if (!currentBeforeId && cursorStack.length === 0) {
+          fetchLogs(); // only refresh if on page 1
+        }
+      }, 30000);
+
+      // ── Initial load ───────────────────────────────────────────────────────
+      fetchLogs();
+    </script>
+  </body>
+</html>

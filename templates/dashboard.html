@@ -53,7 +53,6 @@
         overflow-x: hidden;
       }
 
-      /* ── ANIMATIONS ─────────────────────────────────────────── */
       @keyframes pulse {
         0%,
         100% {
@@ -73,15 +72,6 @@
           top: 100%;
         }
       }
-      @keyframes detectPulse {
-        0%,
-        100% {
-          border-color: rgba(74, 158, 255, 0.7);
-        }
-        50% {
-          border-color: rgba(74, 158, 255, 0.2);
-        }
-      }
       @keyframes rackBlink {
         0%,
         100% {
@@ -91,8 +81,18 @@
           opacity: 0.2;
         }
       }
+      @keyframes fadeSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-      /* ── TOPBAR ─────────────────────────────────────────────── */
+      /* ── TOPBAR ── */
       .topbar {
         position: fixed;
         top: 0;
@@ -127,8 +127,32 @@
         box-shadow: 0 0 8px var(--accent-glow);
         animation: pulse 2s ease-in-out infinite;
       }
+      .topbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .topbar-link {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--navy-300);
+        text-decoration: none;
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        border: 0.5px solid transparent;
+        transition: all 0.2s;
+      }
+      .topbar-link:hover {
+        color: var(--text-primary);
+        background: var(--surface);
+        border-color: var(--surface-border);
+      }
+      .topbar-link.active {
+        color: var(--accent);
+        border-color: rgba(74, 158, 255, 0.3);
+        background: rgba(74, 158, 255, 0.07);
+      }
       .topbar-logout {
-        font-family: var(--font-body);
         font-size: 13px;
         font-weight: 500;
         color: var(--navy-300);
@@ -136,12 +160,9 @@
         padding: 6px 14px;
         border-radius: var(--radius-sm);
         border: 0.5px solid rgba(107, 157, 214, 0.3);
-        transition:
-          color 0.2s,
-          border-color 0.2s,
-          background 0.2s;
-        cursor: pointer;
+        transition: all 0.2s;
         background: transparent;
+        cursor: pointer;
       }
       .topbar-logout:hover {
         color: var(--text-primary);
@@ -149,7 +170,7 @@
         background: var(--surface);
       }
 
-      /* ── DASHBOARD LAYOUT ───────────────────────────────────── */
+      /* ── LAYOUT ── */
       .dashboard-page {
         min-height: 100vh;
         background: linear-gradient(
@@ -166,11 +187,10 @@
         padding: 48px 32px 64px;
       }
 
-      /* ── WELCOME HERO ───────────────────────────────────────── */
+      /* ── WELCOME ── */
       .welcome-hero {
         margin-bottom: 40px;
       }
-
       .welcome-tag {
         display: inline-flex;
         align-items: center;
@@ -210,11 +230,10 @@
         color: var(--text-muted);
       }
 
-      /* ── CAMERA PREVIEW ─────────────────────────────────────── */
+      /* ── CAMERA ── */
       .camera-section {
         margin: 32px 0 48px;
       }
-
       .camera-label {
         font-size: 11px;
         font-weight: 500;
@@ -232,11 +251,39 @@
         height: 0.5px;
         background: rgba(255, 255, 255, 0.08);
       }
+      .agent-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 100px;
+      }
+      .agent-pill.live {
+        background: rgba(34, 197, 94, 0.1);
+        color: #4ade80;
+        border: 0.5px solid rgba(34, 197, 94, 0.25);
+      }
+      .agent-pill.offline {
+        background: rgba(239, 68, 68, 0.1);
+        color: #f87171;
+        border: 0.5px solid rgba(239, 68, 68, 0.25);
+      }
+      .pill-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 4px currentColor;
+        animation: pulse 2s infinite;
+      }
 
       .camera-frame {
         width: 100%;
         max-width: 740px;
-        aspect-ratio: unset;
         min-height: 380px;
         background: #000a1a;
         border-radius: var(--radius-lg);
@@ -247,7 +294,6 @@
           0 0 40px rgba(10, 22, 40, 0.8),
           0 0 0 0.5px rgba(74, 158, 255, 0.08);
       }
-
       .cam-scanline {
         position: absolute;
         left: 0;
@@ -282,23 +328,11 @@
         );
         z-index: 2;
       }
-
-      .svg-1 {
-        position: absolute;
-        bottom: 36px;
-        left: 0;
-        right: 0;
-        width: 100%;
-        height: 50%;
-      }
-
       .cam-bg-elements {
         position: absolute;
         inset: 0;
         z-index: 1;
       }
-
-      /* Animated server rack silhouette */
       .cam-server-rack {
         position: absolute;
         right: 8%;
@@ -342,7 +376,6 @@
         animation-delay: 0.8s;
       }
 
-      /* Camera status bar */
       .cam-status-bar {
         position: absolute;
         bottom: 0;
@@ -386,7 +419,6 @@
         letter-spacing: 0.08em;
       }
 
-      /* Corner bracket decorations */
       .cam-corner {
         position: absolute;
         z-index: 5;
@@ -422,7 +454,6 @@
         z-index: 2;
         display: none;
       }
-
       #cam-offline,
       #cam-connecting {
         position: absolute;
@@ -436,7 +467,6 @@
         color: var(--text-muted);
         font-size: 14px;
       }
-
       #cam-retry {
         margin-top: 4px;
         padding: 6px 18px;
@@ -446,17 +476,14 @@
         color: var(--accent);
         font-size: 13px;
         cursor: pointer;
-        transition:
-          background 0.2s,
-          border-color 0.2s;
+        transition: all 0.2s;
       }
-
       #cam-retry:hover {
         background: rgba(74, 158, 255, 0.15);
         border-color: rgba(74, 158, 255, 0.5);
       }
 
-      /* ── STAT CARDS ─────────────────────────────────────────── */
+      /* ── STAT CARDS ── */
       .stats-row {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -470,9 +497,7 @@
         padding: 24px 26px;
         position: relative;
         overflow: hidden;
-        transition:
-          border-color 0.2s,
-          background 0.2s;
+        transition: all 0.2s;
         -webkit-backdrop-filter: blur(12px);
         backdrop-filter: blur(12px);
       }
@@ -538,7 +563,7 @@
         background: var(--success);
       }
 
-      /* ── SECTION LABEL ──────────────────────────────────────── */
+      /* ── SECTION LABEL ── */
       .section-label {
         font-size: 11px;
         font-weight: 500;
@@ -556,8 +581,23 @@
         height: 0.5px;
         background: rgba(255, 255, 255, 0.08);
       }
+      .section-label a {
+        font-size: 11px;
+        color: var(--accent);
+        text-decoration: none;
+        letter-spacing: 0.06em;
+        padding: 3px 10px;
+        border-radius: 100px;
+        border: 0.5px solid rgba(74, 158, 255, 0.25);
+        background: rgba(74, 158, 255, 0.07);
+        white-space: nowrap;
+        transition: all 0.2s;
+      }
+      .section-label a:hover {
+        background: rgba(74, 158, 255, 0.15);
+      }
 
-      /* ── DEVICES TABLE ──────────────────────────────────────── */
+      /* ── DEVICES TABLE ── */
       .devices-table {
         background: rgba(10, 22, 40, 0.55);
         border: 0.5px solid rgba(255, 255, 255, 0.09);
@@ -568,7 +608,7 @@
       }
       .table-head {
         display: grid;
-        grid-template-columns: 2fr 1.8fr 1.6fr 1fr;
+        grid-template-columns: 1.6fr 1.2fr 1.6fr 1fr 2fr 0.8fr;
         padding: 14px 24px;
         border-bottom: 0.5px solid rgba(255, 255, 255, 0.07);
         background: rgba(15, 32, 64, 0.3);
@@ -582,7 +622,7 @@
       }
       .table-row {
         display: grid;
-        grid-template-columns: 2fr 1.8fr 1.6fr 1fr;
+        grid-template-columns: 1.6fr 1.2fr 1.6fr 1fr 2fr 0.8fr;
         padding: 18px 24px;
         border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
         align-items: center;
@@ -594,7 +634,6 @@
       .table-row:hover {
         background: rgba(74, 158, 255, 0.04);
       }
-
       .device-name {
         display: flex;
         align-items: center;
@@ -612,6 +651,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
       }
       .table-cell {
         font-size: 13px;
@@ -619,7 +659,6 @@
         font-variant-numeric: tabular-nums;
       }
 
-      /* ── STATUS BADGES ──────────────────────────────────────── */
       .status-badge {
         display: inline-flex;
         align-items: center;
@@ -651,22 +690,155 @@
         background: currentColor;
         box-shadow: 0 0 5px currentColor;
       }
+
+      /* ── RECENT LOGS STRIP ── */
+      .logs-strip {
+        margin-top: 32px;
+        background: rgba(10, 22, 40, 0.55);
+        border: 0.5px solid rgba(255, 255, 255, 0.09);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+      }
+      .logs-strip-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 14px 24px;
+        border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+        transition: background 0.15s;
+        animation: fadeSlideIn 0.3s ease both;
+      }
+      .logs-strip-row:last-child {
+        border-bottom: none;
+      }
+      .logs-strip-row:hover {
+        background: rgba(74, 158, 255, 0.04);
+      }
+
+      .log-type-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .log-type-icon.login-ok {
+        background: rgba(34, 197, 94, 0.12);
+        border: 0.5px solid rgba(34, 197, 94, 0.25);
+        color: #4ade80;
+      }
+      .log-type-icon.login-fail {
+        background: rgba(239, 68, 68, 0.12);
+        border: 0.5px solid rgba(239, 68, 68, 0.25);
+        color: #f87171;
+      }
+      .log-type-icon.logout {
+        background: rgba(150, 185, 230, 0.1);
+        border: 0.5px solid rgba(150, 185, 230, 0.2);
+        color: var(--navy-300);
+      }
+      .log-type-icon.new-device {
+        background: rgba(74, 158, 255, 0.1);
+        border: 0.5px solid rgba(74, 158, 255, 0.25);
+        color: var(--accent);
+      }
+      .log-type-icon.default {
+        background: rgba(255, 255, 255, 0.05);
+        border: 0.5px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-muted);
+      }
+
+      .log-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .log-message {
+        font-size: 13px;
+        color: var(--text-primary);
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .log-meta {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .log-meta-item {
+        font-size: 11px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .log-meta-item svg {
+        opacity: 0.6;
+      }
+
+      .log-time {
+        font-family: "Courier New", monospace;
+        font-size: 10px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        padding-top: 2px;
+        letter-spacing: 0.04em;
+      }
+
+      .log-type-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 100px;
+        flex-shrink: 0;
+      }
+      .log-type-pill.login-ok {
+        background: rgba(34, 197, 94, 0.1);
+        color: #4ade80;
+      }
+      .log-type-pill.login-fail {
+        background: rgba(239, 68, 68, 0.1);
+        color: #f87171;
+      }
+      .log-type-pill.logout {
+        background: rgba(150, 185, 230, 0.08);
+        color: var(--navy-300);
+      }
+      .log-type-pill.new-device {
+        background: rgba(74, 158, 255, 0.1);
+        color: var(--accent);
+      }
+      .log-type-pill.default {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-muted);
+      }
     </style>
   </head>
   <body>
     <div class="dashboard-page">
-      <!-- Topbar -->
       <nav class="topbar">
         <div class="topbar-brand">
-          <span class="dot"></span>
-          Network Administration
+          <span class="dot"></span>Network Administration
         </div>
-        <a class="topbar-logout" href="/logout">Log out</a>
+        <div class="topbar-nav">
+          <a class="topbar-link active" href="/dashboard">Dashboard</a>
+          <a class="topbar-link" href="/logs">Logs</a>
+          <a class="topbar-logout" href="/logout">Log out</a>
+        </div>
       </nav>
 
-      <!-- Main content -->
       <div class="dash-inner">
-        <!-- Welcome Hero -->
+        <!-- Welcome -->
         <div class="welcome-hero">
           <div class="welcome-tag">
             <span class="tag-dot"></span>System Operational
@@ -674,7 +846,7 @@
           <h2 class="welcome-heading">Welcome, <span>{{ user }}</span></h2>
         </div>
 
-        <!-- Camera Preview -->
+        <!-- Camera -->
         <div class="camera-section">
           <div class="camera-label">
             Live Camera — Server Room {% if agent_live %}
@@ -689,10 +861,7 @@
           </div>
 
           <div class="camera-frame">
-            <!-- Background grid (below feed) -->
             <div class="cam-grid"></div>
-
-            <!-- Decorative server rack (always visible as overlay) -->
             <div class="cam-bg-elements">
               <div class="cam-server-rack">
                 <div class="rack-unit"></div>
@@ -705,16 +874,11 @@
               </div>
             </div>
 
-            <!-- ★ Live MJPEG feed -->
             <canvas id="cam-feed" alt="Live camera feed"></canvas>
-
-            <!-- Shown while the feed hasn't loaded yet -->
             <div id="cam-connecting">
               <div class="spinner"></div>
               <p>Connecting to feed…</p>
             </div>
-
-            <!-- Shown if the feed fails or agent is offline -->
             <div id="cam-offline">
               <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
                 <path
@@ -729,11 +893,9 @@
               <button id="cam-retry">Retry</button>
             </div>
 
-            <!-- HUD overlays (always on top) -->
             <div class="cam-scanline"></div>
             <div class="cam-vignette"></div>
 
-            <!-- Corner brackets -->
             <div class="cam-corner cam-corner-tl">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path
@@ -775,11 +937,10 @@
               </svg>
             </div>
 
-            <!-- Status bar -->
             <div class="cam-status-bar">
               <div class="cam-status-item">
-                <span class="dot" id="live-dot"></span>
-                <span id="live-label">CONNECTING</span>
+                <span class="dot" id="live-dot"></span
+                ><span id="live-label">CONNECTING</span>
               </div>
               <div class="cam-status-item"><span class="dot"></span>REC</div>
               <div class="cam-status-item">
@@ -795,8 +956,11 @@
         <div class="stats-row">
           <div class="stat-card">
             <div class="stat-label">Active Devices</div>
-            <div class="stat-value">24</div>
-            <div class="stat-delta">+2 since yesterday</div>
+            <div class="stat-value">{{ devices | length }}</div>
+            <div class="stat-delta">
+              {% if devices %}+{{ devices | length }} discovered{% else %}No
+              scan yet{% endif %}
+            </div>
             <div class="stat-accent blue"></div>
           </div>
           <div class="stat-card">
@@ -806,47 +970,36 @@
             <div class="stat-accent warn"></div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Uptime</div>
-            <div class="stat-value">99.8%</div>
-            <div class="stat-delta">30-day average</div>
+            <div class="stat-label">Recent Log Events</div>
+            <div class="stat-value">{{ recent_logs | length }}</div>
+            <div class="stat-delta">
+              <a
+                href="/logs"
+                style="
+                  color: var(--accent);
+                  text-decoration: none;
+                  font-size: 12px;
+                "
+                >View all →</a
+              >
+            </div>
             <div class="stat-accent green"></div>
           </div>
         </div>
 
-        <!-- Device Inventory Table -->
+        <!-- Device Inventory -->
         <div class="section-label">Device Inventory</div>
         <div class="devices-table">
           <div class="table-head">
-            <div class="table-head-cell">Device</div>
+            <div class="table-head-cell">Device / Hostname</div>
             <div class="table-head-cell">IP Address</div>
-            <div class="table-head-cell">Location</div>
+            <div class="table-head-cell">MAC Address</div>
+            <div class="table-head-cell">Vendor</div>
+            <div class="table-head-cell">Open Ports</div>
             <div class="table-head-cell">Status</div>
           </div>
 
-          <div class="table-row">
-            <div class="device-name">
-              <div class="device-icon">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                  <path
-                    d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                    stroke="rgba(74,158,255,0.9)"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </div>
-              Core Router
-            </div>
-            <div class="table-cell">192.168.1.1</div>
-            <div class="table-cell">Server Room</div>
-            <div class="table-cell">
-              <span class="status-badge online"
-                ><span class="badge-dot"></span>Online</span
-              >
-            </div>
-          </div>
-
+          {% for device in devices %}
           <div class="table-row">
             <div class="device-name">
               <div class="device-icon">
@@ -863,104 +1016,198 @@
                   <circle cx="6" cy="12" r="1" fill="rgba(74,158,255,0.9)" />
                 </svg>
               </div>
-              Access Switch 1
+              {{ device.hostname or device.ip }}
             </div>
-            <div class="table-cell">192.168.1.10</div>
-            <div class="table-cell">Laboratory</div>
+            <div class="table-cell">{{ device.ip }}</div>
+            <div
+              class="table-cell"
+              style="
+                font-family: &quot;Courier New&quot;, monospace;
+                font-size: 11px;
+              "
+            >
+              {{ device.mac or "N/A" }}
+            </div>
+            <div class="table-cell">{{ device.vendor or "Unknown" }}</div>
             <div class="table-cell">
-              <span class="status-badge online"
+              {% if device.open_ports %} {% for port in device.open_ports %}
+              <span
+                style="
+                  background: rgba(74, 158, 255, 0.08);
+                  border: 0.5px solid rgba(74, 158, 255, 0.2);
+                  color: var(--navy-300);
+                  border-radius: 4px;
+                  padding: 1px 6px;
+                  font-size: 10px;
+                  font-family: &quot;Courier New&quot;, monospace;
+                  margin-right: 3px;
+                "
+                >{{ port }}</span
+              >
+              {% endfor %} {% else %}
+              <span
+                style="
+                  font-size: 11px;
+                  color: var(--text-muted);
+                  font-style: italic;
+                "
+                >None detected</span
+              >
+              {% endif %}
+            </div>
+            <div class="table-cell">
+              {% set age = device.seconds_ago | default(0) %} {% if age < 120
+              %}<span class="status-badge online"
                 ><span class="badge-dot"></span>Online</span
               >
+              {% else %}<span class="status-badge warn"
+                ><span class="badge-dot"></span>Stale</span
+              >{% endif %}
             </div>
           </div>
+          {% else %}
+          <div
+            style="
+              padding: 48px;
+              text-align: center;
+              color: var(--text-muted);
+              font-size: 14px;
+            "
+          >
+            No devices discovered yet — agent scan pending.
+          </div>
+          {% endfor %}
+        </div>
 
-          <div class="table-row">
-            <div class="device-name">
-              <div class="device-icon">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                  <path
-                    d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"
-                    stroke="rgba(74,158,255,0.9)"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </div>
-              Wireless AP
+        <!-- Recent Logs Strip -->
+        <div class="section-label" style="margin-top: 40px">
+          Recent Activity
+          <a href="/logs">View all logs →</a>
+        </div>
+        <div class="logs-strip" id="recent-logs-strip">
+          {% for log in recent_logs %} {% set type_class = "login-ok" if
+          (log.type == "login" and log.success) else "login-fail" if (log.type
+          == "login" and not log.success) else "logout" if log.type == "logout"
+          else "new-device" if log.type == "new_device" else "default" %} {% set
+          type_label = "Login OK" if (log.type == "login" and log.success) else
+          "Login Fail" if (log.type == "login" and not log.success) else
+          "Logout" if log.type == "logout" else "New Device" if log.type ==
+          "new_device" else log.type %}
+          <div class="logs-strip-row">
+            <div class="log-type-icon {{ type_class }}">
+              {% if log.type == "login" and log.success %}
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              {% elif log.type == "login" and not log.success %}
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              {% elif log.type == "logout" %}
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              {% elif log.type == "new_device" %}
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              {% else %}
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="9"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path
+                  d="M12 8v4l3 3"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              {% endif %}
             </div>
-            <div class="table-cell">192.168.1.25</div>
-            <div class="table-cell">Hallway</div>
-            <div class="table-cell">
-              <span class="status-badge online"
-                ><span class="badge-dot"></span>Online</span
-              >
+            <div class="log-body">
+              <div class="log-message">{{ log.message }}</div>
+              <div class="log-meta">
+                <span class="log-type-pill {{ type_class }}"
+                  >{{ type_label }}</span
+                >
+                {% if log.ip %}<span class="log-meta-item">
+                  <svg width="10" height="10" fill="none" viewBox="0 0 24 24">
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="9"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <path
+                      d="M12 8v4l2 2"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                  {{ log.ip }} </span
+                >{% endif %} {% if log.username %}<span class="log-meta-item">
+                  <svg width="10" height="10" fill="none" viewBox="0 0 24 24">
+                    <path
+                      d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 3a4 4 0 100 8 4 4 0 000-8z"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                  {{ log.username }} </span
+                >{% endif %}
+              </div>
+            </div>
+            <div class="log-time">
+              {{ log.created_at[:19].replace("T"," ") }}
             </div>
           </div>
-
-          <div class="table-row">
-            <div class="device-name">
-              <div class="device-icon">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                  <rect
-                    x="4"
-                    y="4"
-                    width="16"
-                    height="16"
-                    rx="2"
-                    stroke="rgba(74,158,255,0.9)"
-                    stroke-width="1.5"
-                  />
-                  <path
-                    d="M9 9h6M9 12h6M9 15h4"
-                    stroke="rgba(74,158,255,0.9)"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </div>
-              Firewall Node
-            </div>
-            <div class="table-cell">192.168.1.2</div>
-            <div class="table-cell">Server Room</div>
-            <div class="table-cell">
-              <span class="status-badge warn"
-                ><span class="badge-dot"></span>Warning</span
-              >
-            </div>
+          {% else %}
+          <div
+            style="
+              padding: 32px;
+              text-align: center;
+              color: var(--text-muted);
+              font-size: 13px;
+            "
+          >
+            No activity logged yet.
           </div>
-
-          <div class="table-row">
-            <div class="device-name">
-              <div class="device-icon">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                  <rect
-                    x="2"
-                    y="8"
-                    width="20"
-                    height="8"
-                    rx="2"
-                    stroke="rgba(74,158,255,0.9)"
-                    stroke-width="1.5"
-                  />
-                  <circle cx="18" cy="12" r="1" fill="rgba(74,158,255,0.9)" />
-                  <circle cx="15" cy="12" r="1" fill="rgba(74,158,255,0.9)" />
-                </svg>
-              </div>
-              Access Switch 2
-            </div>
-            <div class="table-cell">192.168.1.11</div>
-            <div class="table-cell">Conference Rm</div>
-            <div class="table-cell">
-              <span class="status-badge offline"
-                ><span class="badge-dot"></span>Offline</span
-              >
-            </div>
-          </div>
+          {% endfor %}
         </div>
       </div>
+      <!-- /dash-inner -->
     </div>
+
     <script>
-      // ── Clock ──────────────────────────────────────────────────────────────
+      // Clock
       function updateClock() {
         const el = document.getElementById("cam-clock");
         if (el)
@@ -971,7 +1218,7 @@
       updateClock();
       setInterval(updateClock, 1000);
 
-      // ── WebSocket video via <canvas> ───────────────────────────────────────
+      // Camera WS
       const canvas = document.getElementById("cam-feed");
       const ctx = canvas.getContext("2d");
       const connecting = document.getElementById("cam-connecting");
@@ -1003,15 +1250,12 @@
       }
 
       let ws = null;
-
       function connectWS() {
         showConnecting();
         const proto = location.protocol === "https:" ? "wss" : "ws";
         ws = new WebSocket(`${proto}://${location.host}/ws/view`);
         ws.binaryType = "blob";
-
         ws.onopen = () => console.log("[WS] Connected");
-
         ws.onmessage = (e) => {
           const url = URL.createObjectURL(e.data);
           const img = new Image();
@@ -1024,32 +1268,119 @@
           };
           img.src = url;
         };
-
         ws.onerror = () => showOffline();
-        ws.onclose = () => {
-          showOffline();
-        };
+        ws.onclose = () => showOffline();
       }
-
       retryBtn.addEventListener("click", connectWS);
       connectWS();
 
-      // ── Poll agent status every 8s ─────────────────────────────────────────
       async function checkAgent() {
         try {
           const res = await fetch("/ingest/status");
           const data = await res.json();
-          if (data.last_push_seconds_ago > 10 || !data.frame_available) {
+          if (data.last_push_seconds_ago > 10 || !data.frame_available)
             showOffline();
-          } else if (
+          else if (
             canvas.style.display === "none" &&
             offline.style.display === "flex"
-          ) {
+          )
             connectWS();
-          }
         } catch (_) {}
       }
       setInterval(checkAgent, 8000);
+
+      // ── Live log polling ───────────────────────────────────────────────────
+      let latestLogId = null; // track the newest id we've seen
+
+      function typeClass(type, success) {
+        if (type === "login") return success ? "login-ok" : "login-fail";
+        if (type === "logout") return "logout";
+        if (type === "new_device") return "new-device";
+        return "default";
+      }
+      function typeLabel(type, success) {
+        if (type === "login") return success ? "Login OK" : "Login Fail";
+        if (type === "logout") return "Logout";
+        if (type === "new_device") return "New Device";
+        return type;
+      }
+      function iconSvg(cls) {
+        const icons = {
+          "login-ok": `<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+          "login-fail": `<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+          logout: `<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+          "new-device": `<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+          default: `<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+        };
+        return icons[cls] || icons["default"];
+      }
+      function esc(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+      function fmtTime(iso) {
+        return new Date(iso).toLocaleTimeString("en-GB", { hour12: false });
+      }
+
+      function buildRow(log) {
+        const cls = typeClass(log.type, log.success);
+        const label = typeLabel(log.type, log.success);
+        const div = document.createElement("div");
+        div.className = "logs-strip-row";
+        div.style.animationDuration = "0.35s";
+        div.innerHTML = `
+          <div class="log-type-icon ${cls}">${iconSvg(cls)}</div>
+          <div class="log-body">
+            <div class="log-message">${esc(log.message)}</div>
+            <div class="log-meta">
+              <span class="log-type-pill ${cls}">${label}</span>
+              ${log.ip ? `<span class="log-meta-item">${esc(log.ip)}</span>` : ""}
+              ${log.username ? `<span class="log-meta-item">${esc(log.username)}</span>` : ""}
+            </div>
+          </div>
+          <div class="log-time">${fmtTime(log.created_at)}</div>`;
+        return div;
+      }
+
+      async function pollLogs() {
+        try {
+          const params = new URLSearchParams({ limit: 8 });
+          if (latestLogId) params.set("after_id", latestLogId);
+
+          const res = await fetch(`/api/logs?${params}`);
+          const data = await res.json();
+          if (!data.logs || !data.logs.length) return;
+
+          const strip = document.getElementById("recent-logs-strip");
+
+          // On first load latestLogId is null — just record the newest id, rows
+          // already rendered by Jinja. On subsequent polls, prepend new rows.
+          if (latestLogId === null) {
+            latestLogId = data.logs[0].id;
+            return;
+          }
+
+          // New rows arrive oldest-first from after_id query (ASC), so reverse
+          // so we prepend newest first.
+          const newRows = [...data.logs].reverse();
+          newRows.forEach((log) => {
+            const row = buildRow(log);
+            strip.insertBefore(row, strip.firstChild);
+          });
+
+          // Keep only the latest 8 rows
+          const allRows = strip.querySelectorAll(".logs-strip-row");
+          for (let i = 8; i < allRows.length; i++) allRows[i].remove();
+
+          latestLogId = data.logs[0].id;
+        } catch (_) {}
+      }
+
+      // Snapshot current newest id on load, then poll every 5s
+      pollLogs();
+      setInterval(pollLogs, 5000);
     </script>
   </body>
 </html>
