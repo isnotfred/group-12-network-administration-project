@@ -833,8 +833,12 @@
         </div>
         <div class="topbar-nav">
           <a class="topbar-link active" href="/dashboard">Dashboard</a>
-          <a class="topbar-link" href="/logs">Logs</a>
-          <a class="topbar-logout" href="/logout">Log out</a>
+          {% if is_admin %}<a class="topbar-link" href="/logs">Logs</a>{% endif %}
+          {% if is_admin %}<a class="topbar-link" href="/admin/users">Users</a>{% endif %}
+          <form method="POST" action="/logout" style="display: inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <button type="submit" class="topbar-logout">Log out</button>
+          </form>
         </div>
       </nav>
 
@@ -953,6 +957,7 @@
           </div>
         </div>
 
+        {% if is_admin %}
         <!-- Stat Cards -->
         <div class="stats-row">
           <div class="stat-card">
@@ -1203,6 +1208,7 @@
           </div>
           {% endfor %}
         </div>
+        {% endif %}
       </div>
       <!-- /dash-inner -->
     </div>
@@ -1289,7 +1295,10 @@
         } catch (_) {}
       }
       setInterval(checkAgent, 8000);
+    </script>
 
+    {% if is_admin %}
+    <script>
       // ── Live log polling ───────────────────────────────────────────────────
       let latestLogId = null; // track the newest id we've seen
 
@@ -1297,12 +1306,18 @@
         if (type === "login") return success ? "login-ok" : "login-fail";
         if (type === "logout") return "logout";
         if (type === "new_device") return "new-device";
+        if (type === "security") return "login-fail";
+        if (type === "signup") return "login-ok";
+        if (type === "page_view") return "default";
         return "default";
       }
       function typeLabel(type, success) {
         if (type === "login") return success ? "Login OK" : "Login Fail";
         if (type === "logout") return "Logout";
         if (type === "new_device") return "New Device";
+        if (type === "security") return "Security";
+        if (type === "signup") return "Signup";
+        if (type === "page_view") return "Page View";
         return type;
       }
       function iconSvg(cls) {
@@ -1383,5 +1398,6 @@
       pollLogs();
       setInterval(pollLogs, 5000);
     </script>
+    {% endif %}
   </body>
 </html>

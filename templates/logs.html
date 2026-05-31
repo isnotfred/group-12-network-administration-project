@@ -589,8 +589,12 @@
         </div>
         <div class="topbar-nav">
           <a class="topbar-link" href="/dashboard">Dashboard</a>
-          <a class="topbar-link active" href="/logs">Logs</a>
-          <a class="topbar-logout" href="/logout">Log out</a>
+          {% if is_admin %}<a class="topbar-link active" href="/logs">Logs</a>{% endif %}
+          {% if is_admin %}<a class="topbar-link" href="/admin/users">Users</a>{% endif %}
+          <form method="POST" action="/logout" style="display: inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <button type="submit" class="topbar-logout">Log out</button>
+          </form>
         </div>
       </nav>
 
@@ -620,6 +624,12 @@
               New Device
             </button>
             <button class="filter-btn" data-type="logout">Logout</button>
+            <button class="filter-btn login-fail" data-type="security">
+              Security
+            </button>
+            <button class="filter-btn login-ok" data-type="signup">
+              Signup
+            </button>
           </div>
           <div class="toolbar-right">
             <div class="total-badge">
@@ -727,6 +737,12 @@
         if (type === "login") return success ? "login-ok" : "login-fail";
         if (type === "logout") return "logout";
         if (type === "new_device") return "new-device";
+        if (type === "security") return "login-fail";
+        if (type === "signup") return "login-ok";
+        if (type === "page_view") return "default";
+        if (type === "user_approved") return "login-ok";
+        if (type === "user_rejected") return "login-fail";
+        if (type === "user_role_change") return "new-device";
         return "default";
       }
 
@@ -734,16 +750,16 @@
         if (type === "login") return success ? "Login OK" : "Login Fail";
         if (type === "logout") return "Logout";
         if (type === "new_device") return "New Device";
+        if (type === "security") return "Security";
+        if (type === "signup") return "Signup";
+        if (type === "page_view") return "Page View";
+        if (type === "user_approved") return "Approved";
+        if (type === "user_rejected") return "Rejected";
+        if (type === "user_role_change") return "Role Change";
         return type;
       }
 
-      // Filter type sent to API: "login_success" / "login_failed" → we need special handling
       function apiTypeParam(filterType) {
-        // API accepts "login", "logout", "new_device"
-        // For login_success / login_failed we filter on "login" and then filter client-side
-        // Actually, let's encode it in the URL and handle server-side later.
-        // For now we send full type to the backend; the backend stores "login" for both and
-        // we'll add client-side filtering by success field.
         if (filterType === "login_success" || filterType === "login_failed")
           return "login";
         return filterType;
@@ -775,8 +791,17 @@
         if (!log.meta) return "";
         const m =
           typeof log.meta === "string" ? JSON.parse(log.meta) : log.meta;
-        if (log.type === "login" && m.user_agent)
-          return truncate(m.user_agent, 60);
+        if (log.type === "login") {
+          const parts = [];
+          if (m.city || m.country) {
+            const loc = [m.city, m.region, m.country]
+              .filter(Boolean)
+              .join(", ");
+            if (loc) parts.push("📍 " + loc);
+          }
+          if (m.user_agent) parts.push(truncate(m.user_agent, 60));
+          return parts.join(" · ");
+        }
         if (log.type === "new_device") {
           const parts = [];
           if (m.mac && m.mac !== "N/A") parts.push(`MAC: ${m.mac}`);
@@ -785,6 +810,7 @@
             parts.push(`Ports: ${m.open_ports.join(", ")}`);
           return parts.join(" · ");
         }
+        if (log.type === "security" && m.reason) return `Reason: ${m.reason}`;
         return "";
       }
 
