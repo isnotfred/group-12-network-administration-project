@@ -833,8 +833,10 @@
         </div>
         <div class="topbar-nav">
           <a class="topbar-link active" href="/dashboard">Dashboard</a>
-          {% if is_admin %}<a class="topbar-link" href="/logs">Logs</a>{% endif %}
-          {% if is_admin %}<a class="topbar-link" href="/admin/users">Users</a>{% endif %}
+          {% if is_admin %}<a class="topbar-link" href="/logs">Logs</a>{% endif
+          %} {% if is_admin %}<a class="topbar-link" href="/admin/users"
+            >Users</a
+          >{% endif %}
           <form method="POST" action="/logout" style="display: inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
             <button type="submit" class="topbar-logout">Log out</button>
@@ -971,8 +973,17 @@
           </div>
           <div class="stat-card">
             <div class="stat-label">Open Alerts</div>
-            <div class="stat-value">3</div>
-            <div class="stat-delta warn">⚠ Requires attention</div>
+            <div class="stat-value">{{ alerts.total }}</div>
+            <div class="stat-delta {% if alerts.total > 0 %}warn{% endif %}">
+              {% if alerts.total == 0 %} ✓ All clear {% else %} {% set parts =
+              [] %} {% if alerts.blocked_ips > 0 %}{% set _ =
+              parts.append(alerts.blocked_ips ~ " blocked IP" ~ ("s" if
+              alerts.blocked_ips != 1 else "")) %}{% endif %} {% if
+              alerts.pending_users > 0 %}{% set _ =
+              parts.append(alerts.pending_users ~ " pending user" ~ ("s" if
+              alerts.pending_users != 1 else "")) %}{% endif %} ⚠ {{ parts |
+              join(", ") }} {% endif %}
+            </div>
             <div class="stat-accent warn"></div>
           </div>
           <div class="stat-card">

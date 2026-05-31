@@ -141,10 +141,10 @@ def write_log(type_: str, message: str, ip: str = None, username: str = None,
             with conn.cursor() as cur:
                 cur.execute("""
                     INSERT INTO logs (type, message, ip, username, success, meta, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s AT TIME ZONE 'Asia/Manila')
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (type_, message, ip, username, success,
-                      json.dumps(meta) if meta else None,
-                      _pht_now()))
+                    json.dumps(meta) if meta else None,
+                    _pht_now()))
         conn.close()
     except Exception as exc:
         print(f"[LOG] Failed to write log: {exc}")
@@ -507,6 +507,8 @@ def login():
             and db_user["approved"]
         )
 
+        geo = _geolocate(client_ip)
+
         if admin_match or db_match:
             _reset_attempts(client_ip)
             session.clear()
@@ -515,7 +517,7 @@ def login():
             session["is_admin"] = True if admin_match else bool(db_user.get("is_admin"))
             _get_csrf_token()  # generate fresh token
 
-            geo = _geolocate(client_ip)
+            
             write_log(
                 type_="login",
                 message=f"Successful login for '{username}'",
@@ -548,7 +550,12 @@ def login():
             ip=client_ip,
             username=username or None,
             success=False,
-            meta={"user_agent": ua}
+            meta={
+                "user_agent": ua,
+                "city":    geo.get("city", ""),
+                "region":  geo.get("region", ""),
+                "country": geo.get("country", ""),
+            }
         )
 
     return render_template("login.html", error=error)
@@ -617,6 +624,23 @@ def logout():
 
 # ── Dashboard ──────────────────────────────────────────────────────────────────
 
+def _fetch_alerts() -> dict:
+    """Return counts of things that need admin attention."""
+    result = {"blocked_ips": 0, "pending_users": 0, "total": 0}
+    try:
+        conn = _get_db()
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM ip_blocks WHERE blocked_until > NOW()")
+            result["blocked_ips"] = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM users WHERE approved = FALSE")
+            result["pending_users"] = cur.fetchone()[0]
+        conn.close()
+        result["total"] = result["blocked_ips"] + result["pending_users"]
+    except Exception as exc:
+        print(f"[ALERTS] Failed to fetch: {exc}")
+    return result
+
+
 @app.route("/dashboard")
 @login_required
 def dashboard():
@@ -625,6 +649,7 @@ def dashboard():
     agent_live  = (time.time() - _last_push_time) < 10
     devices     = _fetch_devices()      if is_admin else []
     recent_logs = _fetch_recent_logs(limit=8) if is_admin else []
+    alerts      = _fetch_alerts()       if is_admin else {"total": 0, "blocked_ips": 0, "pending_users": 0}
     write_log(
         type_="page_view",
         message=f"User '{user}' viewed Dashboard",
@@ -634,7 +659,7 @@ def dashboard():
     )
     return render_template("dashboard.html", user=user, is_admin=is_admin,
                            agent_live=agent_live, devices=devices,
-                           recent_logs=recent_logs)
+                           recent_logs=recent_logs, alerts=alerts)
 
 
 # ── Logs page ──────────────────────────────────────────────────────────────────
