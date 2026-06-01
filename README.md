@@ -49,11 +49,8 @@ A Flask-based web dashboard for monitoring network devices, viewing logs, managi
    INGEST_KEY=replace-with-camera-or-agent-key
    DATABASE_URL=postgresql://username:password@localhost:5432/network_admin
 
-   # Email alerting (required for IP-block notifications)
-   SMTP_USER=your-gmail-address@gmail.com
-   SMTP_PASSWORD=your-gmail-app-password
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
+   # Email alerting via Resend (https://resend.com)
+   RESEND_API_KEY=re_xxxxxxxxxxxx
    ALERT_EMAIL_TO=fredorlain5@gmail.com
    ```
 
@@ -73,7 +70,7 @@ A Flask-based web dashboard for monitoring network devices, viewing logs, managi
 
 ## Production
 
-The included `Procfile` runs the app with Gunicorn using a gthread worker class. Use it directly with a Gunicorn-compatible host (e.g., Heroku, Render):
+The included `Procfile` runs the app with Gunicorn using a gthread worker class. Use it directly with a Gunicorn-compatible host (e.g., Heroku, Render, Railway):
 
 ```
 web: gunicorn app:app --workers 1 --threads 16 --worker-class gthread --bind 0.0.0.0:$PORT --timeout 120
@@ -83,12 +80,12 @@ web: gunicorn app:app --workers 1 --threads 16 --worker-class gthread --bind 0.0
 
 The network uses a star topology with the router, computer, and camera all connected through a central switch.
 
-| Device   | IP Address     |
-| -------- | -------------- |
-| Router   | 192.168.1.1    |
-| Camera   | 192.168.1.10   |
-| Computer | 192.168.1.20   |
-| Switch   | —              |
+| Device   | IP Address   |
+| -------- | ------------ |
+| Router   | 192.168.1.1  |
+| Camera   | 192.168.1.10 |
+| Computer | 192.168.1.20 |
+| Switch   | —            |
 
 ```mermaid
 flowchart LR
@@ -99,40 +96,40 @@ flowchart LR
 
 ## Pages & Endpoints
 
-| Path               | Description                        |
-| ------------------ | ---------------------------------- |
-| `/`                | Home page                          |
-| `/login`           | Login                              |
-| `/signup`          | Signup (requires admin approval)   |
-| `/dashboard`       | User/admin dashboard               |
-| `/logs`            | Logs viewer                        |
-| `/admin/users`     | Admin user management              |
-| `/api/devices`     | Device data API                    |
-| `/api/logs`        | Logs API                           |
-| `/ingest/devices`  | Device ingest endpoint             |
-| `/ingest/status`   | Camera/frame ingest status         |
+| Path              | Description                      |
+| ----------------- | -------------------------------- |
+| `/`               | Home page                        |
+| `/login`          | Login                            |
+| `/signup`         | Signup (requires admin approval) |
+| `/dashboard`      | User/admin dashboard             |
+| `/logs`           | Logs viewer                      |
+| `/admin/users`    | Admin user management            |
+| `/api/devices`    | Device data API                  |
+| `/api/logs`       | Logs API                         |
+| `/ingest/devices` | Device ingest endpoint           |
+| `/ingest/status`  | Camera/frame ingest status       |
 
 The camera or ingest agent must include the configured `INGEST_KEY` when sending data to the ingest endpoints.
 
 ## Email Alerts
 
-When an IP is blocked due to brute-force login attempts (5 consecutive failures), an alert email is automatically sent to the configured `ALERT_EMAIL_TO` address. The email includes:
+When an IP is blocked due to brute-force login attempts (5 consecutive failures), an alert email is automatically sent to the configured `ALERT_EMAIL_TO` address via [Resend](https://resend.com). The email includes:
 
-| Field | Description |
-| --- | --- |
-| **Blocked IP** | The offending IP address |
-| **Blocked At** | Timestamp in Philippine Standard Time |
-| **Block Duration** | How long the block lasts (default: 15 minutes) |
-| **Location** | City, region, and country resolved via IP geolocation |
-| **Coordinates** | Latitude/longitude from the geolocation lookup |
-| **Hostname** | Device hostname if the IP is a known network device |
-| **MAC Address** | Device MAC address if known |
-| **Vendor** | Device vendor/manufacturer if known |
-| **Open Ports** | Any open ports associated with the device |
+| Field              | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| **Blocked IP**     | The offending IP address                             |
+| **Blocked At**     | Timestamp in Philippine Standard Time                |
+| **Block Duration** | How long the block lasts (default: 15 minutes)       |
+| **Location**       | City, region, and country resolved via geolocation   |
+| **Coordinates**    | Latitude/longitude from the geolocation lookup       |
+| **Hostname**       | Device hostname if the IP is a known network device  |
+| **MAC Address**    | Device MAC address if known                          |
+| **Vendor**         | Device vendor/manufacturer if known                  |
+| **Open Ports**     | Any open ports associated with the device            |
 
-The email is sent in the background (non-blocking) so it does not affect login response time. If SMTP credentials are not configured, the alert is skipped and a warning is printed to the console.
+The email is sent in the background (non-blocking) so it does not affect login response time. If `RESEND_API_KEY` is not set, the alert is skipped and a warning is printed to the console.
 
-**Gmail setup:** Create a [Google App Password](https://myaccount.google.com/apppasswords) and use it as `SMTP_PASSWORD`. Do not use your regular Gmail password.
+**Resend setup:** Sign up at [resend.com](https://resend.com), create an API key, and set it as `RESEND_API_KEY`. The free tier allows up to 3,000 emails/month. Note that on the free tier, the sender address is fixed as `onboarding@resend.dev`; to send from a custom address, verify your domain in the Resend dashboard.
 
 ## Screenshots
 
@@ -158,12 +155,12 @@ The email is sent in the background (non-blocking) so it does not affect login r
 
 ## Contributors
 
-| Name                      | Role                        |
-| ------------------------- | --------------------------- |
-| Frederick C. Orlain       | Developer                   |
-| Mark Joseph D. Cutamora   | Developer                   |
-| Franz Marco R. Basbas     | Documentation & other tasks |
-| Nikko J. Agcaoili         | Documentation & other tasks |
+| Name                    | Role                        |
+| ----------------------- | --------------------------- |
+| Frederick C. Orlain     | Developer                   |
+| Mark Joseph D. Cutamora | Developer                   |
+| Franz Marco R. Basbas   | Documentation & other tasks |
+| Nikko J. Agcaoili       | Documentation & other tasks |
 
 ## License
 
