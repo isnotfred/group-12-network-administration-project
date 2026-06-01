@@ -5,7 +5,6 @@ import os
 import secrets
 import threading
 import time
-import urllib.request
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 
@@ -36,8 +35,8 @@ INGEST_KEY     = os.environ.get("INGEST_KEY", "")
 DATABASE_URL   = os.environ.get("DATABASE_URL", "")
 
 # ── Email / alert config ───────────────────────────────────────────────────────
-ALERT_EMAIL_TO = os.environ.get("ALERT_EMAIL_TO")
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+ALERT_EMAIL_TO = os.environ.get("ALERT_EMAIL_TO", "fredorlain5@gmail.com")
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 
 # ── Philippine Standard Time (UTC+8) ──────────────────────────────────────────
 PHT = timezone(timedelta(hours=8))
@@ -318,23 +317,22 @@ def _send_block_alert(ip: str, geo: dict, device: dict | None):
             f"Open Ports     : {ports_str}\n"
         )
 
-        payload = json.dumps({
-            "from":    "Network Admin <onboarding@resend.dev>",
-            "to":      ALERT_EMAIL_TO,
-            "subject": subject,
-            "html":    html_body,
-            "text":    plain_body,
-        }).encode()
-
-        req = urllib.request.Request(
+        response = http_requests.post(
             "https://api.resend.com/emails",
-            data=payload,
             headers={
                 "Authorization": f"Bearer {RESEND_API_KEY}",
                 "Content-Type":  "application/json",
-            }
+            },
+            json={
+                "from":    "Network Admin <onboarding@resend.dev>",
+                "to":      ALERT_EMAIL_TO,
+                "subject": subject,
+                "html":    html_body,
+                "text":    plain_body,
+            },
+            timeout=10
         )
-        urllib.request.urlopen(req, timeout=10)
+        response.raise_for_status()
         print(f"[EMAIL] Block alert sent for {ip} → {ALERT_EMAIL_TO}")
 
     except Exception as exc:
