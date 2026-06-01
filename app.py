@@ -51,7 +51,7 @@ _viewers: set = set()
 # ── Brute-force tracker (in-memory, keyed by IP) ──────────────────────────────
 _bf_lock    = threading.Lock()
 _bf_attempts: dict[str, dict] = {}  # ip -> {count, blocked_until}
-BF_MAX_ATTEMPTS = 10
+BF_MAX_ATTEMPTS = 5
 BF_BLOCK_SECONDS = 900  # 15 minutes
 
 
