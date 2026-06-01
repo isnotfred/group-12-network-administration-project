@@ -8,6 +8,10 @@ import hmac
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 from flask import (Flask, Response, redirect, render_template, request,
                    session, url_for, jsonify, abort)
 from flask_sock import Sock
@@ -35,6 +39,13 @@ ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 INGEST_KEY     = os.environ.get("INGEST_KEY", "")
 DATABASE_URL   = os.environ.get("DATABASE_URL", "")
+
+# ── Email / alert config ───────────────────────────────────────────────────────
+ALERT_EMAIL_TO = os.environ.get("ALERT_EMAIL_TO")
+SMTP_HOST      = os.environ.get("SMTP_HOST")
+SMTP_PORT      = int(os.environ.get("SMTP_PORT"))
+SMTP_USER      = os.environ.get("SMTP_USER")        # sender Gmail address
+SMTP_PASSWORD  = os.environ.get("SMTP_PASSWORD")    # Gmail App Password
 
 # Philippine Standard Time (UTC+8)
 PHT = timezone(timedelta(hours=8))
@@ -165,13 +176,136 @@ def _geolocate(ip: str) -> dict:
         if resp.status_code == 200:
             data = resp.json()
             return {
-                "city":    data.get("city", ""),
-                "region":  data.get("region", ""),
-                "country": data.get("country_name", ""),
+                "city":      data.get("city", ""),
+                "region":    data.get("region", ""),
+                "country":   data.get("country_name", ""),
+                "latitude":  data.get("latitude", "N/A"),
+                "longitude": data.get("longitude", "N/A"),
             }
     except Exception:
         pass
     return {}
+
+
+# ── Block alert email ─────────────────────────────────────────────────────────
+
+def _send_block_alert(ip: str, geo: dict, device: dict | None):
+    """Send an email alert when an IP is blocked. Fails silently."""
+    if not SMTP_USER or not SMTP_PASSWORD:
+        print("[EMAIL] SMTP credentials not configured; skipping alert.")
+        return
+
+    try:
+        now_str   = _pht_now().strftime("%Y-%m-%d %H:%M:%S PHT")
+        city      = geo.get("city", "")
+        region    = geo.get("region", "")
+        country   = geo.get("country", "")
+        lat       = geo.get("latitude", "N/A")
+        lon       = geo.get("longitude", "N/A")
+
+        location_parts = [p for p in [city, region, country] if p]
+        location_str   = ", ".join(location_parts) if location_parts else "Unknown"
+        coords_str     = (f"{lat}, {lon}"
+                          if lat != "N/A" and lon != "N/A"
+                          else "Unavailable")
+
+        hostname   = device.get("hostname",   "N/A") if device else "N/A"
+        mac        = device.get("mac",        "N/A") if device else "N/A"
+        vendor     = device.get("vendor",     "N/A") if device else "N/A"
+        open_ports = device.get("open_ports", [])   if device else []
+        ports_str  = (", ".join(str(p) for p in open_ports)
+                      if open_ports else "None detected")
+
+        subject = f"[Network Admin] IP Blocked: {ip}"
+
+        html_body = f"""
+<html><body style="font-family:Arial,sans-serif;color:#222;max-width:600px;margin:auto">
+  <h2 style="background:#c0392b;color:#fff;padding:12px 16px;border-radius:4px;margin:0">
+    ⚠️ IP Address Blocked
+  </h2>
+  <p style="margin:16px 0 4px">
+    An IP was automatically blocked after <strong>{BF_MAX_ATTEMPTS}</strong> consecutive
+    failed login attempts.
+  </p>
+  <table style="width:100%;border-collapse:collapse;margin-top:12px">
+    <tr style="background:#f5f5f5">
+      <th style="text-align:left;padding:8px 12px;border:1px solid #ddd;width:40%">Field</th>
+      <th style="text-align:left;padding:8px 12px;border:1px solid #ddd">Value</th>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #ddd"><strong>Blocked IP</strong></td>
+      <td style="padding:8px 12px;border:1px solid #ddd;font-family:monospace">{ip}</td>
+    </tr>
+    <tr style="background:#fafafa">
+      <td style="padding:8px 12px;border:1px solid #ddd"><strong>Blocked At</strong></td>
+      <td style="padding:8px 12px;border:1px solid #ddd">{now_str}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #ddd"><strong>Block Duration</strong></td>
+      <td style="padding:8px 12px;border:1px solid #ddd">{BF_BLOCK_SECONDS // 60} minutes</td>
+    </tr>
+    <tr style="background:#fafafa">
+      <td style="padding:8px 12px;border:1px solid #ddd"><strong>Location</strong></td>
+      <td style="padding:8px 12px;border:1px solid #ddd">{location_str}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #ddd"><strong>Coordinates</strong></td>
+      <td style="padding:8px 12px;border:1px solid #ddd">{coords_str}</td>
+    </tr>
+    <tr style="background:#fafafa">
+      <td style="padding:8px 12px;border:1px solid #ddd"><strong>Hostname</strong></td>
+      <td style="padding:8px 12px;border:1px solid #ddd">{hostname}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #ddd"><strong>MAC Address</strong></td>
+      <td style="padding:8px 12px;border:1px solid #ddd;font-family:monospace">{mac}</td>
+    </tr>
+    <tr style="background:#fafafa">
+      <td style="padding:8px 12px;border:1px solid #ddd"><strong>Vendor</strong></td>
+      <td style="padding:8px 12px;border:1px solid #ddd">{vendor}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #ddd"><strong>Open Ports</strong></td>
+      <td style="padding:8px 12px;border:1px solid #ddd">{ports_str}</td>
+    </tr>
+  </table>
+  <p style="margin-top:20px;font-size:12px;color:#888">
+    Sent by Network Administration Dashboard &bull; {now_str}
+  </p>
+</body></html>
+"""
+
+        plain_body = (
+            f"IP BLOCKED ALERT\n"
+            f"================\n"
+            f"Blocked IP      : {ip}\n"
+            f"Blocked At      : {now_str}\n"
+            f"Block Duration  : {BF_BLOCK_SECONDS // 60} minutes\n"
+            f"Location        : {location_str}\n"
+            f"Coordinates     : {coords_str}\n"
+            f"Hostname        : {hostname}\n"
+            f"MAC Address     : {mac}\n"
+            f"Vendor          : {vendor}\n"
+            f"Open Ports      : {ports_str}\n"
+        )
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"]    = SMTP_USER
+        msg["To"]      = ALERT_EMAIL_TO
+        msg.attach(MIMEText(plain_body, "plain"))
+        msg.attach(MIMEText(html_body,  "html"))
+
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SMTP_USER, ALERT_EMAIL_TO, msg.as_string())
+
+        print(f"[EMAIL] Block alert sent for {ip} → {ALERT_EMAIL_TO}")
+
+    except Exception as exc:
+        print(f"[EMAIL] Failed to send block alert: {exc}")
 
 
 # ── Brute-force helpers ────────────────────────────────────────────────────────
@@ -237,6 +371,12 @@ def _record_failed_attempt(ip: str):
             success=False,
             meta={"reason": "brute_force", "blocked_for_seconds": BF_BLOCK_SECONDS}
         )
+        # Look up geo + any known device record, then email the alert
+        def _alert_async(blocked_ip: str):
+            geo    = _geolocate(blocked_ip)
+            device = _get_device_by_ip(blocked_ip)
+            _send_block_alert(blocked_ip, geo, device)
+        threading.Thread(target=_alert_async, args=(ip,), daemon=True).start()
 
 
 def _reset_attempts(ip: str):
@@ -403,6 +543,22 @@ def _fetch_devices() -> list[dict]:
             return [dict(r) for r in cur.fetchall()]
     finally:
         conn.close()
+
+
+def _get_device_by_ip(ip: str) -> dict | None:
+    """Return the device row for a given IP, or None if not found."""
+    try:
+        conn = _get_db()
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                "SELECT ip, mac, hostname, vendor, open_ports FROM devices WHERE ip = %s",
+                (ip,)
+            )
+            row = cur.fetchone()
+        conn.close()
+        return dict(row) if row else None
+    except Exception:
+        return None
 
 
 def _fetch_recent_logs(limit: int = 10) -> list[dict]:

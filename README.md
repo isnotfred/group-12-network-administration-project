@@ -16,6 +16,7 @@ A Flask-based web dashboard for monitoring network devices, viewing logs, managi
 - Admin user management and role assignment
 - WebSocket support for live camera frame viewing
 - PostgreSQL-backed storage for users, devices, logs, and IP block records
+- **Automatic email alerts** when an IP is blocked — includes the IP address, geolocation (city, region, country, and coordinates), and the associated device details
 
 ## Setup
 
@@ -47,6 +48,13 @@ A Flask-based web dashboard for monitoring network devices, viewing logs, managi
    ADMIN_PASSWORD=replace-with-admin-password
    INGEST_KEY=replace-with-camera-or-agent-key
    DATABASE_URL=postgresql://username:password@localhost:5432/network_admin
+
+   # Email alerting (required for IP-block notifications)
+   SMTP_USER=your-gmail-address@gmail.com
+   SMTP_PASSWORD=your-gmail-app-password
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   ALERT_EMAIL_TO=fredorlain5@gmail.com
    ```
 
 5. **Create the PostgreSQL database.** The application creates all required tables automatically on first run.
@@ -105,6 +113,26 @@ flowchart LR
 | `/ingest/status`   | Camera/frame ingest status         |
 
 The camera or ingest agent must include the configured `INGEST_KEY` when sending data to the ingest endpoints.
+
+## Email Alerts
+
+When an IP is blocked due to brute-force login attempts (5 consecutive failures), an alert email is automatically sent to the configured `ALERT_EMAIL_TO` address. The email includes:
+
+| Field | Description |
+| --- | --- |
+| **Blocked IP** | The offending IP address |
+| **Blocked At** | Timestamp in Philippine Standard Time |
+| **Block Duration** | How long the block lasts (default: 15 minutes) |
+| **Location** | City, region, and country resolved via IP geolocation |
+| **Coordinates** | Latitude/longitude from the geolocation lookup |
+| **Hostname** | Device hostname if the IP is a known network device |
+| **MAC Address** | Device MAC address if known |
+| **Vendor** | Device vendor/manufacturer if known |
+| **Open Ports** | Any open ports associated with the device |
+
+The email is sent in the background (non-blocking) so it does not affect login response time. If SMTP credentials are not configured, the alert is skipped and a warning is printed to the console.
+
+**Gmail setup:** Create a [Google App Password](https://myaccount.google.com/apppasswords) and use it as `SMTP_PASSWORD`. Do not use your regular Gmail password.
 
 ## Screenshots
 
